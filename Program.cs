@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using AllianceDM;
+﻿using AllianceDM;
 using AllianceDM.Init;
 using Rcl.Logging;
 
@@ -26,5 +25,10 @@ static class DecisionMaker
     {
         foreach (var i in Components)
             i.Value.Awake();
+    }
+
+    static void StageConstruct()
+    {
+
     }
 }

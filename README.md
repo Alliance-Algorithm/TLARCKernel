@@ -11,4 +11,5 @@
 - dependency parsing
 - hight Robustness
 - system construct with No compilation
+- lazy transform calcu
 - ...
