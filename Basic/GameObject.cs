@@ -11,7 +11,7 @@ namespace AllianceDM
         private string name = "";
 
         public Vector2 Position { get => new Vector2(x, y); set { x = value.X; y = value.Y; } }
-        public double A0ngle
+        public double Angle
         {
             get => theta; set
             {
