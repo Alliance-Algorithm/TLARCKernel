@@ -40,7 +40,7 @@ namespace AllianceDM
         /// <summary>
         /// 信息传递
         /// </summary>
-        public virtual void Echo() { }
+        public virtual void Echo(string topic, int frameRate) { }
     }
 
     public class ComponentCell(Component component)
@@ -61,6 +61,7 @@ namespace AllianceDM
         public Action Awake => _component.Awake;
 
         public Action Update => _component.Update;
+
 
         public static implicit operator ComponentCell(Component component)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Security.Cryptography;
 using Rcl;
 using Rcl.Logging;
 using Rcl.Parameters;
@@ -16,11 +17,13 @@ namespace AllianceDM.IO
             internal string Name = name;
         }
 
+#pragma warning disable IDE0052 // 删除未读的私有成员
         bool _update = false;
+#pragma warning restore IDE0052 // 删除未读的私有成员
         public delegate void MessageHandler<T>(T msg) where T : IMessage;
         public static void RegistryMassage<T>(string name, MessageHandler<T> handler) where T : IMessage
         {
-            Task t1 = Task.Run(() => RecieveTask(name, handler));
+            Task.Run(() => RecieveTask(name, handler));
         }
 
         public IOManager(uint uuid, uint[] recvid, string[] args) : this()
@@ -30,6 +33,7 @@ namespace AllianceDM.IO
         }
         public override void Awake()
         {
+
         }
         public static async void RecieveTask<T>(string name, MessageHandler<T> handler) where T : IMessage
         {
@@ -46,14 +50,14 @@ namespace AllianceDM.IO
             Console.WriteLine(name + ":Registry");
         }
 
+        internal static void ArgsAppend(string[] args)
+        {
+
+        }
 
         public override void Update()
         {
             _update = true;
-        }
-        public override void Echo()
-        {
-            _update = false;
         }
 
     }

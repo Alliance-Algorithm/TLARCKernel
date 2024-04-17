@@ -42,8 +42,8 @@ namespace AllianceDM
         }
         static void Awake()
         {
-            foreach (var i in Components)
-                i.Value.Awake();
+            foreach (var i in Components.Values)
+                i.Awake();
         }
 
         static void LifeCycle(object? source, ElapsedEventArgs e)
@@ -81,7 +81,8 @@ namespace AllianceDM
         }
         static void OutputUpdate()
         {
-
+            // foreach (var i in Components.Values)
+            //     i.Echo();
         }
 
         static void FindPath(ref ComponentCell cell, in Hashtable colored)
@@ -91,7 +92,7 @@ namespace AllianceDM
                 if (colored.ContainsKey(cell.ID))
                     throw new Exception("There is a loop,path is:");
                 colored.Add(cell.ID, null);
-                uint max = 1;
+                uint max = 0;
                 for (var i = 0; i < cell.Forward.Count; i++)
                 {
                     ComponentCell c = cell.Forward[i];
@@ -99,7 +100,13 @@ namespace AllianceDM
                         FindPath(ref c, in colored);
                     max = Math.Max(c.Dim, max);
                 }
-                cell.Dim = max;
+                cell.Dim = max + 1;
+                if (max == 0)
+                    return;
+                for (var i = 0; i < cell.Forward.Count; i++)
+                {
+                    cell.Forward[i].Dim = max;
+                }
                 return;
             }
             catch (Exception e)

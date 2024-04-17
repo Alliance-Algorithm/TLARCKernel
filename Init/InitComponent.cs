@@ -52,7 +52,7 @@ namespace AllianceDM.Init
                         if (!t.IsSubclassOf(typeof(Component)))
                             throw new Exception("type not a component");
 
-                        dynamic d = t.Assembly.CreateInstance(t.FullName, false, BindingFlags.Default, null, new object[] { c.this_id, c.input_id, c.arg }, null, null)
+                        dynamic d = t.Assembly.CreateInstance(t.FullName, false, BindingFlags.Default, null, [c.this_id, c.input_id, c.arg], null, null)
                          ?? throw new Exception("Could not create instance");
                         components.Add(c.this_id, d);
                     }
