@@ -12,7 +12,7 @@ namespace AllianceDM.IO
         {
             for (int i = 0; i < Args.Length; i += 2)
             {
-                DecisionMaker.FindComponent(RecieveID[i / 2]).Echo(Args[i], int.Parse(s: Args[i + 1]));
+                DecisionMaker.FindComponent<Component>(RecieveID[i / 2]).Echo(Args[i], int.Parse(s: Args[i + 1]));
             }
         }
     }

@@ -165,9 +165,9 @@ namespace AllianceDM
         {
             return GameObjects[name];
         }
-        public static Component FindComponent(uint id)
+        public static T FindComponent<T>(uint id) where T : Component
         {
-            return Components[id].Component;
+            return Components[id].Component as T ?? throw new Exception("uuid:" + id.ToString());
         }
     }
 }

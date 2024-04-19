@@ -18,7 +18,7 @@ namespace AllianceDM.IO
         }
 
 #pragma warning disable IDE0052 // 删除未读的私有成员
-        bool _update = false;
+        // bool _update = false;
 #pragma warning restore IDE0052 // 删除未读的私有成员
         public delegate void MessageHandler<T>(T msg) where T : IMessage;
         public IOManager(uint uuid, uint[] recvid, string[] args) : this()
@@ -63,7 +63,7 @@ namespace AllianceDM.IO
 
         public override void Update()
         {
-            _update = true;
+            // _update = true;
         }
 
     }
