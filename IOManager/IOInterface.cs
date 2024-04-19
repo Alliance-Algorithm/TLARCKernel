@@ -21,11 +21,6 @@ namespace AllianceDM.IO
         bool _update = false;
 #pragma warning restore IDE0052 // 删除未读的私有成员
         public delegate void MessageHandler<T>(T msg) where T : IMessage;
-        public static void RegistryMassage<T>(string name, MessageHandler<T> handler) where T : IMessage
-        {
-            Task.Run(() => RecieveTask(name, handler));
-        }
-
         public IOManager(uint uuid, uint[] recvid, string[] args) : this()
         {
             Ros2Def.node.Logger.LogFatal("IOManager Could Not Build by User");
@@ -35,6 +30,17 @@ namespace AllianceDM.IO
         {
 
         }
+        /// <summary>
+        /// Recive Msg
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="handler"></param>
+        public static void RegistryMassage<T>(string name, MessageHandler<T> handler) where T : IMessage
+        {
+            Task.Run(() => RecieveTask(name, handler));
+        }
+
         public static async void RecieveTask<T>(string name, MessageHandler<T> handler) where T : IMessage
         {
             using var subscription = Ros2Def.node.CreateSubscription<T>(name);
