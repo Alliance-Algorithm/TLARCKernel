@@ -10,12 +10,13 @@ namespace AllianceDM
     static class DecisionMaker
     {
         static Dictionary<uint, ComponentCell> Components = [];
-        static List<List<Action>> UpdateFuncs = new();
+        static List<List<ComponentCell>> UpdateFuncs = new();
         static uint PoolDim = 0;
         static Dictionary<string, GameObject> GameObjects = [];
 
         static readonly object _lock = new();
         static bool _lockWasTaken = false;
+        static List<Task>[] tasks = [];
         static void Main(string[] args)
         {
             Ros2Def.context = new RclContext(args);
@@ -42,6 +43,8 @@ namespace AllianceDM
         }
         static void Awake()
         {
+
+            tasks = new List<Task>[PoolDim + 1];
             foreach (var i in Components.Values)
                 i.Awake();
         }
@@ -64,19 +67,20 @@ namespace AllianceDM
 
         static void InputUpdate()
         {
-            UpdateFuncs[0][0]();
+            UpdateFuncs[0][0].Update();
         }
 
         static void Update()
         {
-            List<Task> tasks = new();
+            for (int i = 0; i < PoolDim + 1; i++)
+                tasks[i] = [];
             for (int i = 1; i < PoolDim; i++)
             {
                 foreach (var a in UpdateFuncs[i])
                 {
-                    tasks.Add(Task.Run(a));
+                    tasks[a.Ealy].Add(Task.Run(a.Update));
                 }
-                Task.WaitAll([.. tasks]);
+                Task.WaitAll([.. tasks[i]]);
             }
         }
         static void OutputUpdate()
@@ -101,6 +105,7 @@ namespace AllianceDM
                     max = Math.Max(c.Dim, max);
                 }
                 cell.Dim = max + 1;
+                cell.Ealy = max + 1;
                 if (max == 0)
                     return;
                 for (var i = 0; i < cell.Forward.Count; i++)
@@ -151,7 +156,7 @@ namespace AllianceDM
                 UpdateFuncs.Add([]);
             Components[0].Dim = 0;
             foreach (var i in l)
-                UpdateFuncs[(int)i.Dim].Add(i.Update);
+                UpdateFuncs[(int)i.Dim].Add(i);
         }
 
         //=====================

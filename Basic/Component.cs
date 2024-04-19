@@ -47,6 +47,7 @@ namespace AllianceDM
     {
 
         uint _dim = 0;
+        uint _ealy = 0;
 
         Component _component = component;
 
@@ -54,6 +55,7 @@ namespace AllianceDM
 
         public uint[] RecieveID => _component.RecieveID;
         public uint Dim { get => _dim; set => _dim = value; }
+        public uint Ealy { get => _ealy; set => _ealy = value; }
         List<ComponentCell> _forward = [];
         public List<ComponentCell> Forward { get => Forward = _forward; set => _forward = value; }
         public uint ID => _component.ID;
