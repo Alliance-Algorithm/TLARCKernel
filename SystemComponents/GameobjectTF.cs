@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Numerics;
 using AllianceDM.IO;
 using Rosidl.Messages.Geometry;
+using Rosidl.Messages.Nav;
 
 namespace AllianceDM.StdComponent
 {
@@ -34,7 +35,7 @@ namespace AllianceDM.StdComponent
             }
             if (Args[1] == "W" && Args.Length == 3)
             {
-                IOManager.RegistryMassage(Args[2], (Pose2D msg) => { position = new Vector2((float)msg.X, (float)msg.Y); });
+                IOManager.RegistryMassage(Args[2], (Odometry msg) => { position = new Vector2(-(float)msg.Pose.Pose.Position.Z, (float)msg.Pose.Pose.Position.X); });
             }
             else throw new Exception("W must declear the topic name\t uuid :" + ID.ToString());
         }
