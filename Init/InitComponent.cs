@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Runtime.Serialization.Json;
-using System.Xml;
 using AllianceDM.IO;
 using Rcl.Logging;
 
@@ -29,7 +28,6 @@ namespace AllianceDM.Init
             string path = DecisionMakerDef.ComponentsPath;
 
             components.Add(0, new IOManager());
-
             string[] files = Directory.GetFiles(path, "*.json");
             foreach (var i in files)
             {
