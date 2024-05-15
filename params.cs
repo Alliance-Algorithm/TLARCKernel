@@ -16,7 +16,7 @@ namespace AllianceDM
     {
         internal const string ComponentsPath = "./Declaration/Component";
         internal const string GameObjectsPath = "./Declaration/Gameobject";
-        internal const int fps = 100;
+        internal const int fps = 150;
     }
 
 }

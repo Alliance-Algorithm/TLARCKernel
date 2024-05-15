@@ -14,7 +14,7 @@ namespace AllianceDM.StdComponent
         Action? action;
         public Transform2D(uint id, uint[] rcvid, string[] args) : base(id, rcvid, args)
         {
-            Console.WriteLine(string.Format("AllianceDM.StdComponent Transform: uuid:{0:D4}", id));
+            Console.WriteLine(string.Format("Alliance5DM.StdComponent Transform: uuid:{0:D4}", id));
         }
         public override void Awake()
         {
