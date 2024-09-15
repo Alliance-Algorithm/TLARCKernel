@@ -1,12 +1,12 @@
 using System.Reflection;
 using System.Runtime.Serialization.Json;
 using System.Text.Json.Serialization;
-using Tlarc.IO;
+using TlarcKernel.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Rcl.Logging;
 
-namespace Tlarc.Init
+namespace TlarcKernel.Init
 {
 
     [Serializable]

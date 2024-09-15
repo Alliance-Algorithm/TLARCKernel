@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
 using System.Numerics;
-using Tlarc.IO;
+using TlarcKernel.IO;
 using Rcl;
 using Rosidl.Messages.Geometry;
 
-namespace Tlarc.IO.ROS2Msgs.Nav
+namespace TlarcKernel.IO.ROS2Msgs.Nav
 {
     class Path(IOManager io)
     {

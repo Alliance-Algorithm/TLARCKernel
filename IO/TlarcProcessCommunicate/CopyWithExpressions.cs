@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Tlarc.IO.TlarcMsgs;
+namespace TlarcKernel.IO.TlarcMsgs;
 
 public class CopyWithExpressions
 {

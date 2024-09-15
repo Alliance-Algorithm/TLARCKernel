@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
-using Tlarc.IO;
+using TlarcKernel.IO;
 using Rcl;
 
-namespace Tlarc.IO.ROS2Msgs.Geometry
+namespace TlarcKernel.IO.ROS2Msgs.Geometry
 {
     class Vector3(IOManager io)
     {

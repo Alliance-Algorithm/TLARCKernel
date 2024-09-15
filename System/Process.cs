@@ -2,10 +2,10 @@ using System.Collections;
 using System.Timers;
 using Rcl;
 using Rcl.Logging;
-using Tlarc.Init;
-using Tlarc.IO;
+using TlarcKernel.Init;
+using TlarcKernel.IO;
 
-namespace Tlarc;
+namespace TlarcKernel;
 
 class Process
 {

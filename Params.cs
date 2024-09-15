@@ -3,7 +3,7 @@
 using Rcl;
 
 [assembly: System.Runtime.CompilerServices.DisableRuntimeMarshalling]
-namespace Tlarc
+namespace TlarcKernel
 {
         internal static class Ros2Def
         {

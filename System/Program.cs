@@ -1,13 +1,13 @@
 ﻿using System.Collections;
 using System.Timers;
-using Tlarc.Init;
-using Tlarc.IO;
+using TlarcKernel.Init;
+using TlarcKernel.IO;
 using Rcl;
 using Rcl.Logging;
 using System.Reflection;
-using Tlarc.IO.TlarcMsgs;
+using TlarcKernel.IO.TlarcMsgs;
 using System.Diagnostics;
-namespace Tlarc
+namespace TlarcKernel
 {
 
 

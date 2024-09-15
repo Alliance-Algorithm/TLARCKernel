@@ -1,9 +1,9 @@
 using System;
 using MonoLibUsb;
-using Tlarc.DataStructure;
+using TlarcKernel.DataStructure;
 
 
-namespace Tlarc.IO.RMCS;
+namespace TlarcKernel.IO.RMCS;
 
 class RMCSSubDeskVer1 : Component
 {

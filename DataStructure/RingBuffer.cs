@@ -1,7 +1,7 @@
 using System.Buffers;
 using Microsoft.Toolkit.HighPerformance;
 
-namespace Tlarc.DataStructure;
+namespace TlarcKernel.DataStructure;
 
 partial class RingBuffer(int lengthOfByte)
 {

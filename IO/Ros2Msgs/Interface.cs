@@ -1,4 +1,4 @@
-namespace Tlarc.IO.ROS2Msgs
+namespace TlarcKernel.IO.ROS2Msgs
 {
 
     class TlarcRosMsgs

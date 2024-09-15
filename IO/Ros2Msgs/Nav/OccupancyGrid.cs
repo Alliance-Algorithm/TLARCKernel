@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using System.Numerics;
-using Tlarc.IO;
+using TlarcKernel.IO;
 using Rcl;
 
-namespace Tlarc.IO.ROS2Msgs.Nav
+namespace TlarcKernel.IO.ROS2Msgs.Nav
 {
     class OccupancyGrid(IOManager io)
     {

@@ -6,9 +6,9 @@ using Rcl.Logging;
 using Rcl.Parameters;
 using Rosidl.Messages.Geometry;
 using Rosidl.Runtime;
-using Tlarc.IO.TlarcMsgs;
+using TlarcKernel.IO.TlarcMsgs;
 
-namespace Tlarc.IO
+namespace TlarcKernel.IO
 {
     public sealed class IOManager : Component
     {
