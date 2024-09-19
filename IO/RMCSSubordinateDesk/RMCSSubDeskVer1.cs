@@ -1,4 +1,3 @@
-using System;
 using MonoLibUsb;
 using TlarcKernel.DataStructure;
 

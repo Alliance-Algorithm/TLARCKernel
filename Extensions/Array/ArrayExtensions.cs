@@ -1,5 +1,3 @@
-using g4;
-
 namespace TlarcKernel.Extensions.Array;
 
 public static class ArrayExtensions

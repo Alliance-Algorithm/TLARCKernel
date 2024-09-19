@@ -1,5 +1,3 @@
-using g4;
-
 namespace TlarcKernel.Transform;
 
 class Transform : Component
