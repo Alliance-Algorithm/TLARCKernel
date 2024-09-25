@@ -27,7 +27,6 @@ namespace TlarcKernel.IO.ROS2Msgs.Std
             if (publisher == null)
                 return;
             nativeMsg.AsRef<Rosidl.Messages.Std.Float32MultiArray.Priv>().Data = new(data);
-            publisher.Publish(nativeMsg);
             publishFlag = true;
         }
         public void Subscript(string topicName, Action<float[]> callback)
