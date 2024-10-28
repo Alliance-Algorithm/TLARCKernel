@@ -1,6 +1,7 @@
 ﻿using TlarcKernel.Init;
 using Rcl;
 using TlarcKernel.IO.TlarcMsgs;
+using System.Diagnostics;
 
 namespace TlarcKernel
 {
@@ -10,12 +11,16 @@ namespace TlarcKernel
     {
         static Dictionary<uint, Process> Processes = [];
         static Dictionary<uint, ComponentCell> Components = [];
+        static Dictionary<Type, uint> LastInstance = [];
         static void Main(string[] args)
         {
             Ros2Def.context = new RclContext(args);
             Ros2Def.node = Ros2Def.context.CreateNode("tlarc");
-
-            ProcessInit.Init(ref Processes, ref Components);
+#if DEBUG
+            Console.WriteLine("[Enter] to use debug.yaml, or input your config files name, split with [Space]:");
+            args = Console.ReadLine().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+#endif
+            ProcessInit.Init(args, ref Processes, ref Components, ref LastInstance);
 
             StageConstruct();
 
@@ -65,6 +70,11 @@ namespace TlarcKernel
         public static Process GetProcessWithPID(uint id)
         {
             return Processes[id];
+        }
+
+        public static uint GetInstanceWithType(Type type)
+        {
+            return LastInstance[type];
         }
     }
 }

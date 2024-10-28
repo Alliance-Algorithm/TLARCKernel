@@ -16,7 +16,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
 
         void Subscript()
         {
-            if (receiveData.Count == 0)
+            if (receiveData.IsEmpty)
                 return;
             while (receiveData.Count > 1) receiveData.TryDequeue(out _);
 
