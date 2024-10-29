@@ -13,6 +13,8 @@ TLARC Framework 是基于ROS2 和 C#12 开发的组件化编程架构，用户�
 - 组件之间自动分析并并行执行无依赖关系的组件
 - 兼容ROS
 - 原生.Net环境，可使用Nuget生态
+- 实时系统支持
+- 缺省的配置文件编写
 ## 安装
 [项目地址](https://github.com/Alliance-Algorithm/TLARC-Framwork/)，新建c#[RCLNet](https://github.com/noelex/rclnet)项目，注意选择正确的版本，然后拉取本库到任意地方即可
 
@@ -37,6 +39,11 @@ mkdir src && git clone -b main https://github.com/Alliance-Algorithm/TLARC-Framw
 - 启用调试模式：```VSCode or VS```,安装相应插件后```f5```, 启用部署模式
 ```
 source /opt/ros/humble/setup.sh && colcon build
+```
+
+- [可选] 开发环境配置
+```
+可以将Environment文件夹下的内容放于工作区根目录
 ```
 
 ## 使用
@@ -84,7 +91,7 @@ class EngineerTargetPreDictor : Component // 组件需要继承自Component
 }
 ```
 
-#### 管线编写示例
+#### [已弃用]管线编写示例
 管线描述文件为一个json
 ```[json]
 {
@@ -106,11 +113,41 @@ class EngineerTargetPreDictor : Component // 组件需要继承自Component
     ]
 }
 ```
+#### 管线编写示例
+管线描述文件为一个yaml
+```[yaml]
+- Fps: 10
+  Components:
+    LearnToUse->Example2:
+      Args:
+        vector3: "{x:1,y:3,z:3}"
+    LearnToUse->Example3:
+    
+- Fps: 1
+  Realtime: true
+  Components:
+    LearnToUse->Example4:
+```
+
+
+| Level | Key | Type | Description |
+|----------|----------|----------|--------|
+| 1 | Fps | int | what this process fps, null for 1000 |
+| 1 | Pid | int | what this process id, null for auto |
+| 1 | Realtime | bool | true for close GC while this process updating |
+| 1 | Components | List<string,description> | components list |
+| 2 | Components.Key | string | namespace->component_name->cid[可选]|
+| 2 | cid | string | what this component id, null for auto |
+| 2 | Components.Value | <Args,Relies> | component description |
+| 3 | Args | Dictionary<string,string> | components arguments |
+| 3 | Relies | List<Cid> | component description |
+| 4 | Args.Key | string | components arguments name in class |
+| 4 | Args.Value | string | components arguments value in class, in json type |
 
 #### 调试
 安装好相对应的C#调试插件，使用自带的调试器即可
 
 #### 部署
 ```
-source /opt/ros/humble/setup.sh && colcon build
+source /opt/ros/humble/setup.sh && colcon build --merge-install
 ```
