@@ -7,7 +7,9 @@ namespace TlarcKernel;
 
 class Process
 {
-    public required int fps { get; init; }
+    public required int Fps { get; init; }
+    public required bool Realtime { get; init; }
+    public required uint Pid { get; init; }
     public required Dictionary<uint, ComponentCell> Components { get; init; }
     List<List<ComponentCell>> UpdateFuncs = new();
     uint PoolDim = 0;
@@ -17,7 +19,7 @@ class Process
     List<Task>[] tasks = [];
     public void Start()
     {
-        double delay_time = 1000.0 / fps;
+        double delay_time = 1000.0 / Fps;
 
         StageConstruct();
 
@@ -53,14 +55,24 @@ class Process
     {
         if (_lockWasTaken)
         {
-            Ros2Def.node.Logger.LogWarning("Warning: did not fix in fps : " + fps + "At Tasks :" + TasksId.ToString());
+            string warning = "";
+            warning += $"did not fix in fps : {Fps} At Tasks : + {TasksId} In Process:0x{Pid}]\n";
+            warning += $"\tIt could be in components:\n";
+
+            foreach (var a in UpdateFuncs[(int)TasksId])
+                warning += $"\t\t {a.Component.GetType()} with uid:0x{a.ID}\n";
+
+            TlarcSystem.LogWarning(warning);
+
         }
         lock (_lock)
         {
             _lockWasTaken = true;
+            if (Realtime) GC.TryStartNoGCRegion(20 * 1024 * 1024);
             InputUpdate();
             Update();
             OutputUpdate();
+            if (Realtime) GC.EndNoGCRegion();
             _lockWasTaken = false;
         }
     }

@@ -2,6 +2,7 @@
 using Rcl;
 using TlarcKernel.IO.TlarcMsgs;
 using System.Diagnostics;
+using System.Runtime;
 
 namespace TlarcKernel
 {
@@ -14,6 +15,7 @@ namespace TlarcKernel
         static Dictionary<Type, uint> LastInstance = [];
         static void Main(string[] args)
         {
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             Ros2Def.context = new RclContext(args);
             Ros2Def.node = Ros2Def.context.CreateNode("tlarc");
 #if DEBUG
@@ -28,6 +30,12 @@ namespace TlarcKernel
 
             Start();
 
+            while (true)
+            {
+                if (TlarcSystem.TryGetPrint(out var a))
+                    a();
+                Thread.Sleep(1);
+            }
         }
         static void Awake()
         {
@@ -46,6 +54,7 @@ namespace TlarcKernel
         {
             foreach (var c in Components.Values)
             {
+                c.AutoSetReceiveID();
                 foreach (var id in c.Component.ReceiveID.Values)
                 {
                     if (Processes[c.Component.ProcessID].Components.Keys.Contains(id))

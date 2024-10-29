@@ -10,14 +10,15 @@ namespace TlarcKernel.Init
 
     struct ProcessProperties()
     {
-        public uint? pid { get; set; }
-        public int? fps { get; set; }
-        public Dictionary<string, ComponentsProperties>? components { get; set; }
+        public uint? Pid { get; set; }
+        public int? Fps { get; set; }
+        public bool? Realtime { get; set; }
+        public Dictionary<string, ComponentsProperties>? Components { get; set; }
     }
     struct ComponentsProperties()
     {
-        public Dictionary<string, uint>? InputComponents { get; set; }
-        public Dictionary<string, object>? Arguments { get; set; }
+        public Dictionary<string, uint>? Relies { get; set; }
+        public Dictionary<string, object>? Args { get; set; }
     }
 
     static internal class ProcessInit
@@ -27,12 +28,6 @@ namespace TlarcKernel.Init
             string path = TlarcSystem.ConfigurationPath;
             string[] files = [];
             List<string> filesHelper = [];
-            if (!configFiles.Any())
-#if DEBUG
-                files = Directory.GetFiles(path, "debug.yaml");
-#else
-                files = Directory.GetFiles(path, "*.yaml");
-#endif
             foreach (var file in configFiles)
             {
                 if (file.EndsWith(".yaml"))
@@ -40,16 +35,19 @@ namespace TlarcKernel.Init
                 else
                     filesHelper.AddRange(Directory.GetFiles(path, $"{file}.yaml"));
             }
+            files = filesHelper.ToArray();
+            if (!configFiles.Any())
+#if DEBUG
+                files = Directory.GetFiles(path, "debug.yaml");
+#else
+                files = Directory.GetFiles(path, "*.yaml");
+#endif
             var deserializer = new DeserializerBuilder()
-                        .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                        .WithNamingConvention(NullNamingConvention.Instance)
                         .Build();
             uint randomKey = 0x11110000;
             foreach (var i in files)
             {
-                Dictionary<uint, ComponentCell> components = new()
-                {
-                    { 0, new IOManager() }
-                };
                 // try
                 // {
                 var yaml = File.ReadAllText(i);
@@ -59,13 +57,17 @@ namespace TlarcKernel.Init
                     continue;
                 foreach (var property in processesProperties)
                 {
-                    uint pid = property.pid ?? randomKey++;
-                    foreach (var component in property.components)
+                    Dictionary<uint, ComponentCell> components = new()
+                    {
+                        { 0, new IOManager() }
+                    };
+                    uint pid = property.Pid ?? randomKey++;
+                    foreach (var component in property.Components)
                     {
                         var declare = component.Key.Split("->");
                         uint key = 0;
                         if (declare.Length == 1)
-                            throw new Exception($"you must declare type in components declare,\n\t in \"{i}\" \n\tprocess:{property.pid?.ToString("X")}:{component.Key}\"");
+                            throw new Exception($"you must declare type in components declare,\n\t in \"{i}\" \n\tprocess:{property.Pid?.ToString("X")}:{component.Key}\"");
                         else if (declare.Length == 2)
                             key = randomKey++;
                         else if (declare.Length == 3)
@@ -83,15 +85,15 @@ namespace TlarcKernel.Init
 
                         dynamic d = t.Assembly.CreateInstance(t.FullName, false, BindingFlags.Default, null, null, null, null)
                          ?? throw new Exception("Could not create instance");
-                        (d as Component).InitComponents(key, component.Value.InputComponents ?? [], component.Value.Arguments ?? []);
+                        (d as Component).InitComponents(key, component.Value.Relies ?? [], component.Value.Args ?? []);
                         (d as Component).IOManager = components[0].Component as IOManager;
                         (d as Component).ProcessID = pid;
 
-                        LastInstance[d.GetType()] = pid;
+                        LastInstance[d.GetType()] = key;
                         components.Add(key, d);
                         componentCells.Add(key, d);
                     }
-                    processes.Add(pid, new Process() { fps = property.fps ?? 1000, Components = components });
+                    processes.Add(pid, new Process() { Pid = pid, Fps = property.Fps ?? 1000, Realtime = property.Realtime ?? false, Components = components });
                 }
 
             }

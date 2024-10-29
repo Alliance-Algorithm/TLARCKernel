@@ -1,6 +1,8 @@
 
 #define humble
+using System.Collections.Concurrent;
 using Rcl;
+using Rosidl.Messages.Builtin;
 
 [assembly: System.Runtime.CompilerServices.DisableRuntimeMarshalling]
 namespace TlarcKernel
@@ -22,28 +24,47 @@ namespace TlarcKernel
                 internal static string ConfigurationPath = Environment.ProcessPath + "/../../../share/tlarc/configuration/";
                 internal static string RootPath = Environment.ProcessPath + "/../../../share/tlarc/";
 #endif
-
+                static ConcurrentQueue<Action> Prints = new();
+                public static bool TryGetPrint(out Action action) => Prints.TryDequeue(out action);
                 static public void LogError(string Message)
                 {
-#if DEBUG
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.WriteLine("[Error]:" + Message);
-                        Console.ResetColor();
-#else
-                        Ros2Def.node.Logger.LogError(Message);
-#endif
+                        Task.Run(() =>
+                        Prints.Enqueue(() =>
+                        {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine($"[Error:{DateTime.UtcNow.Ticks}]:" + Message);
+                                Console.ResetColor();
+                        }));
                 }
                 static public void LogWarning(string Message)
                 {
-#if DEBUG
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.WriteLine("[Warning]:" + Message);
-                        Console.ResetColor();
-#else
-                        Ros2Def.node.Logger.LogError(Message);
-#endif
+                        Task.Run(() =>
+                        Prints.Enqueue(() =>
+                        {
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.WriteLine($"[Warning:{DateTime.UtcNow.Ticks}]:" + Message);
+                                Console.ResetColor();
+                        }));
+                }
+                static public void LogInfo(string Message)
+                {
+                        Task.Run(() =>
+                        Prints.Enqueue(() =>
+                        {
+                                Console.ForegroundColor = ConsoleColor.White;
+                                Console.WriteLine($"[Info:{DateTime.UtcNow.Ticks}]:" + Message);
+                                Console.ResetColor();
+                        }));
+                }
+                static public void Log(string Message, ConsoleColor color)
+                {
+                        Task.Run(() =>
+                        Prints.Enqueue(() =>
+                        {
+                                Console.ForegroundColor = color;
+                                Console.WriteLine(Message);
+                                Console.ResetColor();
+                        }));
                 }
         }
 }
