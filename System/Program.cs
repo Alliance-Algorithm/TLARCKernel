@@ -3,6 +3,9 @@ using Rcl;
 using TlarcKernel.IO.TlarcMsgs;
 using System.Diagnostics;
 using System.Runtime;
+using System.Reflection;
+using TlarcKernel.IO;
+using TlarcKernel.IO.ProcessCommunicateInterfaces;
 
 namespace TlarcKernel
 {
@@ -12,6 +15,7 @@ namespace TlarcKernel
     {
         static Dictionary<uint, Process> Processes = [];
         static Dictionary<uint, ComponentCell> Components = [];
+        static Dictionary<string, IPublisher> CommunicatorInterface = [];
         static Dictionary<Type, uint> LastInstance = [];
         static void Main(string[] args)
         {
@@ -28,6 +32,10 @@ namespace TlarcKernel
 
             Awake();
 
+            BuildInterfaceTable();
+
+            BindInterface();
+
             Start();
 
             while (true)
@@ -42,16 +50,31 @@ namespace TlarcKernel
             foreach (var i in Components.Values)
                 i.Awake();
         }
+        static void BindInterface()
+        {
+
+            foreach (var i in Components.Values)
+                i.BindInterface();
+        }
         static void Start()
         {
 
             foreach (var i in Processes.Values)
                 i.Start();
         }
+        public static void BuildInterfaceTable()
+        {
+            foreach (var c in Components.Values)
+                foreach (var p in c.Component.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+                    if (p.FieldType.GetInterfaces().Any(x => typeof(IPublisher).IsAssignableFrom(x)))
+                        CommunicatorInterface[(p.GetValue(c.Component) as ICommunicateInterface).InterfaceName] = p.GetValue(c.Component) as IPublisher;
+
+        }
 
 
         public static void StageConstruct()
         {
+
             foreach (var c in Components.Values)
             {
                 c.AutoSetReceiveID();
@@ -84,6 +107,13 @@ namespace TlarcKernel
         public static uint GetInstanceWithType(Type type)
         {
             return LastInstance[type];
+        }
+
+
+        public static IPublisher? GetInterfaceWithName(string name)
+        {
+            CommunicatorInterface.TryGetValue(name, out var publisher);
+            return publisher;
         }
     }
 }

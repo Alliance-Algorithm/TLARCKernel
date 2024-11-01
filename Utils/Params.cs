@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using Rcl;
 using Rosidl.Messages.Builtin;
 
-[assembly: System.Runtime.CompilerServices.DisableRuntimeMarshalling]
+// [assembly: System.Runtime.CompilerServices.DisableRuntimeMarshalling]
 namespace TlarcKernel
 {
 

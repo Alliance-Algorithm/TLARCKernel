@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Rcl.Logging;
 using TlarcKernel.IO;
+using TlarcKernel.IO.ProcessCommunicateInterfaces;
 
 namespace TlarcKernel
 {
@@ -94,30 +95,34 @@ namespace TlarcKernel
 
         public void AutoSetReceiveID()
         {
-            foreach (var p in GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            try
             {
-                if (p.FieldType.IsSubclassOf(typeof(Component)) || p.GetCustomAttributes(typeof(ComponentReferenceFiledAttribute), true).Any())
+                foreach (var p in GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
-                    try
+                    if (p.FieldType.IsSubclassOf(typeof(Component)) || p.GetCustomAttributes(typeof(ComponentReferenceFiledAttribute), true).Any())
                     {
-                        typeof(Process).GetMethod("GetComponentWithUID",
-                      BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).MakeGenericMethod(p.FieldType).Invoke(Program.GetProcessWithPID(ProcessID), [_revUid[p.Name]]);
-                    }
-                    catch
-                    {
-                        if (_revUid.ContainsKey(p.Name))
-                        {
-                            continue;
-                        }
                         try
                         {
-                            var tmpId = Program.GetInstanceWithType(p.FieldType);
-                            ReceiveID[p.Name] = tmpId;
+                            typeof(Process).GetMethod("GetComponentWithUID",
+                          BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).MakeGenericMethod(p.FieldType).Invoke(Program.GetProcessWithPID(ProcessID), [_revUid[p.Name]]);
                         }
-                        catch { }
+                        catch
+                        {
+                            if (_revUid.ContainsKey(p.Name))
+                            {
+                                continue;
+                            }
+                            try
+                            {
+                                var tmpId = Program.GetInstanceWithType(p.FieldType);
+                                ReceiveID[p.Name] = tmpId;
+                            }
+                            catch { }
+                        }
                     }
                 }
             }
+            catch { return; }
         }
 
         /// <summary>
@@ -126,56 +131,71 @@ namespace TlarcKernel
         public void Awake()
         {
             Debug.WriteLine(GetType().FullName + "\t uuid:" + _uuid.ToString());
-            foreach (var p in GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            try
             {
-                if (!p.FieldType.IsSubclassOf(typeof(Component)) && !p.GetCustomAttributes(typeof(ComponentReferenceFiledAttribute), true).Any())
-                    continue;
-                if (p.IsPublic)
-                    TlarcSystem.LogWarning($"{p.Name} in {GetType().FullName} should be non public");
-                try
+                foreach (var p in GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
-                    p.SetValue(this, typeof(Process).GetMethod("GetComponentWithUID",
-                  BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).MakeGenericMethod(p.FieldType).Invoke(Program.GetProcessWithPID(ProcessID), [_revUid[p.Name]]));
-                }
-                catch
-                {
-                    if (_revUid.ContainsKey(p.Name))
-                    {
-                        TlarcSystem.LogWarning($"Cannot Find Component: \n\tno any component of uid: {_revUid[p.Name]}\nin process:0x{ProcessID:X}\ntry to use other instance");
-                    }
+                    if (!p.FieldType.IsSubclassOf(typeof(Component)) && !p.GetCustomAttributes(typeof(ComponentReferenceFiledAttribute), true).Any())
+                        continue;
+                    if (p.IsPublic)
+                        TlarcSystem.LogWarning($"{p.Name} in {GetType().FullName} should be non public");
                     try
                     {
-                        var tmpId = Program.GetInstanceWithType(p.FieldType);
                         p.SetValue(this, typeof(Process).GetMethod("GetComponentWithUID",
-                            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).MakeGenericMethod(p.FieldType).Invoke(Program.GetProcessWithPID(ProcessID), [tmpId]));
-                        if (_revUid.ContainsKey(p.Name))
-                            TlarcSystem.LogWarning($"{GetType().FullName} Cannot Find Component: \n\tuse instance of uid: {tmpId:X}\nin process:0x{ProcessID:X}");
+                      BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).MakeGenericMethod(p.FieldType).Invoke(Program.GetProcessWithPID(ProcessID), [_revUid[p.Name]]));
                     }
                     catch
                     {
+                        if (_revUid.ContainsKey(p.Name))
+                        {
+                            TlarcSystem.LogWarning($"Cannot Find Component: \n\tno any component of uid: {_revUid[p.Name]}\nin process:0x{ProcessID:X}\ntry to use other instance");
+                        }
+                        try
+                        {
+                            var tmpId = Program.GetInstanceWithType(p.FieldType);
+                            p.SetValue(this, typeof(Process).GetMethod("GetComponentWithUID",
+                                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).MakeGenericMethod(p.FieldType).Invoke(Program.GetProcessWithPID(ProcessID), [tmpId]));
+                            if (_revUid.ContainsKey(p.Name))
+                                TlarcSystem.LogWarning($"{GetType().FullName} Cannot Find Component: \n\tuse instance of uid: {tmpId:X}\nin process:0x{ProcessID:X}");
+                        }
+                        catch
+                        {
 #if DEBUG
-                        TlarcSystem.LogError($"{GetType().FullName} Cannot Find Component: \n\tno any component of type: {p.FieldType.FullName}\nin process:0x{ProcessID:X}");
-                        p.SetValue(this, CreateInterfaceInstance(p.FieldType) ?? Activator.CreateInstance(p.FieldType));
+                            TlarcSystem.LogError($"{GetType().FullName} Cannot Find Component: \n\tno any component of type: {p.FieldType.FullName}\nin process:0x{ProcessID:X}");
+                            p.SetValue(this, CreateInterfaceInstance(p.FieldType) ?? Activator.CreateInstance(p.FieldType));
 #else
                             throw new Exception($"{GetType().FullName} Cannot Find Component: \n\tno any component of type: {p.FieldType.FullName}\nin process:0x{ProcessID:X}");
 #endif
 
+                        }
                     }
                 }
+                foreach (var p in this.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
+                {
+                    if (!Args.ContainsKey(p.Name))
+                        continue;
+                    var obj = JsonConvert.DeserializeObject<object>(_args[p.Name] as string) ?? throw new Exception($"Argument must be json style string : {p.Name}");
+                    if (obj.GetType().IsSubclassOf(typeof(JContainer)))
+                        p.SetValue(this, obj.GetType().GetMethod("ToObject",
+                         BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, []).MakeGenericMethod(p.FieldType).Invoke(obj, null));
+                    else
+                        p.SetValue(this, Convert.ChangeType(obj, p.FieldType));
+                }
             }
-            foreach (var p in this.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
-            {
-                if (!Args.ContainsKey(p.Name))
-                    continue;
-                var obj = JsonConvert.DeserializeObject<object>(_args[p.Name] as string) ?? throw new Exception($"Argument must be json style string : {p.Name}");
-                if (obj.GetType().IsSubclassOf(typeof(JContainer)))
-                    p.SetValue(this, obj.GetType().GetMethod("ToObject",
-                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, []).MakeGenericMethod(p.FieldType).Invoke(obj, null));
-                else
-                    p.SetValue(this, Convert.ChangeType(obj, p.FieldType));
-            }
+            catch { return; }
         }
 
+        internal void BindInterface()
+        {
+
+            foreach (var p in GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+                if (p.FieldType.GetInterfaces().Any(x => typeof(ISubscriptionFormPublisher).IsAssignableFrom(x)))
+                {
+
+                    p.FieldType.GetProperty("Instance").SetValue(p.GetValue(this), Program.GetInterfaceWithName((p.GetValue(this) as ICommunicateInterface).InterfaceName));
+                }
+
+        }
         // /// <summary>
         // /// 起始调用
         // /// </summary>
@@ -206,6 +226,7 @@ namespace TlarcKernel
         public virtual void Update() { }
 
         public virtual void Echo() { }
+
     }
 
     public class ComponentCell(Component component)
@@ -234,6 +255,7 @@ namespace TlarcKernel
         public Action Update => _component.Update;
         public Action Awake => _component.Awake;
 
+        public Action BindInterface => _component.BindInterface;
 
         public static implicit operator ComponentCell(Component component)
         {

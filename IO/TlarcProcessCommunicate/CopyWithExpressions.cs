@@ -36,7 +36,8 @@ public class CopyWithExpressions
 
             foreach (var sourceFiled in sourceType.GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
-
+                if (sourceFiled.GetCustomAttribute<CopyToOtherProcessesAttribute>() is not null)
+                    continue;
                 var targetFiled = targetType.GetField(sourceFiled.Name, BindingFlags.Public | BindingFlags.Instance);
 
                 var sourceValue = Expression.Field(sourceVariable, sourceFiled);
