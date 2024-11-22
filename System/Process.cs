@@ -11,6 +11,7 @@ class Process
     public required bool Realtime { get; init; }
     public required uint Pid { get; init; }
     public required Dictionary<uint, ComponentCell> Components { get; init; }
+    public required Dictionary<Type, uint> LastInstance { get; init; }
     List<List<ComponentCell>> UpdateFuncs = new();
     uint PoolDim = 0;
     uint TasksId = 0;
@@ -184,8 +185,17 @@ class Process
     }
 
     //=====================
-    public T GetComponentWithUID<T>(uint id) where T : Component
+    public Object GetComponentWithUID(uint id)
     {
-        return Components[id].Component as T ?? throw new Exception("uuid:" + id.ToString());
+        return Components[id].Component ?? throw new Exception("uuid:" + id.ToString());
     }
+    //=====================
+    public uint GetInstanceWithType(Type type)
+    {
+        if (!LastInstance.TryGetValue(type, out var publisher))
+            LastInstance.TryGetValue(LastInstance.Keys.FirstOrDefault(type.IsAssignableFrom), out publisher);
+        return publisher;
+    }
+
+
 }

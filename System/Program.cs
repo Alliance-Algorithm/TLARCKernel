@@ -106,7 +106,10 @@ namespace TlarcKernel
 
         public static uint GetInstanceWithType(Type type)
         {
-            return LastInstance[type];
+
+            if (!LastInstance.TryGetValue(type, out var publisher))
+                LastInstance.TryGetValue(LastInstance.Keys.FirstOrDefault(type.IsAssignableFrom), out publisher);
+            return publisher;
         }
 
 

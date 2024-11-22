@@ -23,7 +23,7 @@ namespace TlarcKernel.Init
 
     static internal class ProcessInit
     {
-        internal static void Init(in IEnumerable<string> configFiles, ref Dictionary<uint, Process> processes, ref Dictionary<uint, ComponentCell> componentCells, ref Dictionary<Type, uint> LastInstance)
+        internal static void Init(in IEnumerable<string> configFiles, ref Dictionary<uint, Process> processes, ref Dictionary<uint, ComponentCell> componentCells, ref Dictionary<Type, uint> lastInstance)
         {
             string path = TlarcSystem.ConfigurationPath;
             string[] files = [];
@@ -57,6 +57,7 @@ namespace TlarcKernel.Init
                     continue;
                 foreach (var property in processesProperties)
                 {
+                    Dictionary<Type, uint> LastInstance = [];
                     Dictionary<uint, ComponentCell> components = new()
                     {
                         { 0, new IOManager() }
@@ -90,10 +91,11 @@ namespace TlarcKernel.Init
                         (d as Component).ProcessID = pid;
 
                         LastInstance[d.GetType()] = key;
+                        lastInstance[d.GetType()] = key;
                         components.Add(key, d);
                         componentCells.Add(key, d);
                     }
-                    processes.Add(pid, new Process() { Pid = pid, Fps = property.Fps ?? 1000, Realtime = property.Realtime ?? false, Components = components });
+                    processes.Add(pid, new Process() { Pid = pid, Fps = property.Fps ?? 1000, Realtime = property.Realtime ?? false, Components = components, LastInstance = LastInstance });
                 }
 
             }

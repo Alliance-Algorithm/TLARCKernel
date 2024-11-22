@@ -114,7 +114,7 @@ namespace TlarcKernel
                             }
                             try
                             {
-                                var tmpId = Program.GetInstanceWithType(p.FieldType);
+                                var tmpId = Program.GetProcessWithPID(ProcessID).GetInstanceWithType(p.FieldType);
                                 ReceiveID[p.Name] = tmpId;
                             }
                             catch { }
@@ -141,8 +141,9 @@ namespace TlarcKernel
                         TlarcSystem.LogWarning($"{p.Name} in {GetType().FullName} should be non public");
                     try
                     {
-                        p.SetValue(this, typeof(Process).GetMethod("GetComponentWithUID",
-                      BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).MakeGenericMethod(p.FieldType).Invoke(Program.GetProcessWithPID(ProcessID), [_revUid[p.Name]]));
+
+                        var tmpId = Program.GetInstanceWithType(p.FieldType);
+                        p.SetValue(this, Program.GetProcessWithPID(ProcessID).GetComponentWithUID(tmpId));
                     }
                     catch
                     {
@@ -150,24 +151,13 @@ namespace TlarcKernel
                         {
                             TlarcSystem.LogWarning($"Cannot Find Component: \n\tno any component of uid: {_revUid[p.Name]}\nin process:0x{ProcessID:X}\ntry to use other instance");
                         }
-                        try
-                        {
-                            var tmpId = Program.GetInstanceWithType(p.FieldType);
-                            p.SetValue(this, typeof(Process).GetMethod("GetComponentWithUID",
-                                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).MakeGenericMethod(p.FieldType).Invoke(Program.GetProcessWithPID(ProcessID), [tmpId]));
-                            if (_revUid.ContainsKey(p.Name))
-                                TlarcSystem.LogWarning($"{GetType().FullName} Cannot Find Component: \n\tuse instance of uid: {tmpId:X}\nin process:0x{ProcessID:X}");
-                        }
-                        catch
-                        {
 #if DEBUG
-                            TlarcSystem.LogError($"{GetType().FullName} Cannot Find Component: \n\tno any component of type: {p.FieldType.FullName}\nin process:0x{ProcessID:X}");
-                            p.SetValue(this, CreateInterfaceInstance(p.FieldType) ?? Activator.CreateInstance(p.FieldType));
+                        TlarcSystem.LogError($"{GetType().FullName} Cannot Find Component: \n\tno any component of type: {p.FieldType.FullName}\nin process:0x{ProcessID:X}");
+                        p.SetValue(this, CreateInterfaceInstance(p.FieldType) ?? Activator.CreateInstance(p.FieldType));
 #else
                             throw new Exception($"{GetType().FullName} Cannot Find Component: \n\tno any component of type: {p.FieldType.FullName}\nin process:0x{ProcessID:X}");
 #endif
 
-                        }
                     }
                 }
                 foreach (var p in this.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
