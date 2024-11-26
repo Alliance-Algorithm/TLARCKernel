@@ -2,7 +2,7 @@
 sealed class CopyToOtherProcessesAttribute : System.Attribute
 {
     // This is a positional argument
-    public CopyToOtherProcessesAttribute(string positionalString)
+    public CopyToOtherProcessesAttribute()
     {
     }
 

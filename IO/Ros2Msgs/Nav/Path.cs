@@ -63,8 +63,8 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
                     for (int i = 0; i < data.Length; i++)
                     {
                         var l = new PoseStamped.Priv();
-                        l.Pose.Position.X = -7.5 - data[i].X;
-                        l.Pose.Position.Y = -data[i].Y;
+                        l.Pose.Position.X = data[i].X;
+                        l.Pose.Position.Y = data[i].Y;
                         l.Pose.Position.Z = data[i].Z;
                         l.Pose.Orientation.W = 1;
                         l.Header.FrameId.CopyFrom("tlarc");
@@ -86,6 +86,13 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
             for (int i = 0; i < this.data.Length; i++)
                 this.data[i] = new(data[i], 0);
 
+            Publish();
+        }
+        public void Publish(Vector3d[] data)
+        {
+            this.data = new System.Numerics.Vector3[data.Length];
+            for (int i = 0; i < this.data.Length; i++)
+                this.data[i] = new((float)data[i].x, (float)data[i].y, (float)data[i].z);
             Publish();
         }
     }

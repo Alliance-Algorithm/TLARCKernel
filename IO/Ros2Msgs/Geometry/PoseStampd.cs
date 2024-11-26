@@ -37,7 +37,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Geometry
                 var q = msg.Pose.Orientation;
                 double sin_cos = 2 * (q.W * q.Z + q.X * q.Y);
                 double cos_cos = 1 - 2 * (q.Y * q.Y + q.Z * q.Z);
-                var angle = Math.PI - Math.Atan2(sin_cos, cos_cos);
+                var angle = Math.Atan2(sin_cos, cos_cos);
 
                 receiveData.Enqueue((new((float)msg.Pose.Position.X, (float)msg.Pose.Position.Y), (float)angle));
             });

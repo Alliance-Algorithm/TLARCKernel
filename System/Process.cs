@@ -9,9 +9,13 @@ class Process
 {
     public required int Fps { get; init; }
     public required bool Realtime { get; init; }
+
+    public double deltaTime { get; private set; }
     public required uint Pid { get; init; }
     public required Dictionary<uint, ComponentCell> Components { get; init; }
     public required Dictionary<Type, uint> LastInstance { get; init; }
+
+    DateTime dateTime = DateTime.Now;
     List<List<ComponentCell>> UpdateFuncs = new();
     uint PoolDim = 0;
     uint TasksId = 0;
@@ -70,6 +74,8 @@ class Process
         {
             _lockWasTaken = true;
             if (Realtime) GC.TryStartNoGCRegion(20 * 1024 * 1024);
+            deltaTime = (DateTime.Now - dateTime).TotalSeconds;
+            dateTime = DateTime.Now;
             InputUpdate();
             Update();
             OutputUpdate();

@@ -6,8 +6,8 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
     class OccupancyGrid(IOManager io)
     {
         (sbyte[,] Map, float Resolution, uint Height, uint Width) data;
-        Action<(sbyte[,] Map, float Resolution, uint Height, uint Width)> callback;
-        ConcurrentQueue<(sbyte[,] Map, float Resolution, uint Height, uint Width)> receiveData = new();
+        Action<(sbyte[,] Map, Vector3d Resolution, double angle, uint Height, uint Width)> callback;
+        ConcurrentQueue<(sbyte[,] Map, Vector3d Resolution, double angle, uint Height, uint Width)> receiveData = new();
 
         IOManager _ioManager = io;
         IRclPublisher<Rosidl.Messages.Nav.OccupancyGrid> publisher;
@@ -28,18 +28,29 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
                 return;
             publishFlag = true;
         }
-        public void Subscript(string topicName, Action<(sbyte[,] Map, float Resolution, uint Height, uint Width)> callback)
+        public void Subscript(string topicName, Action<(sbyte[,] Map, Vector3d Position, double angle, uint Height, uint Width)> callback)
         {
             this.callback = callback;
             _ioManager.TlarcRosMsgs.Input += Subscript;
             _ioManager.RegistrySubscription(topicName, (Rosidl.Messages.Nav.OccupancyGrid msg) =>
             {
-                (sbyte[,] Map, float Resolution, uint Height, uint Width) temp = new();
+                (sbyte[,] Map, Vector3d Position, double angle, uint Height, uint Width) temp = new();
                 var k = msg.Data;
                 temp.Map = new sbyte[msg.Info.Height, msg.Info.Width];
-                temp.Resolution = msg.Info.Resolution;
 
-                Buffer.BlockCopy(k, 0, temp.Map, 0, temp.Map.Length);
+                var q = msg.Info.Origin.Orientation;
+                double sin_cos = 2 * (q.W * q.Z + q.X * q.Y);
+                double cos_cos = 1 - 2 * (q.Y * q.Y + q.Z * q.Z);
+
+                temp.angle = Math.Atan2(sin_cos, cos_cos);
+                temp.Position = new(msg.Info.Origin.Position.X, msg.Info.Origin.Position.Y, msg.Info.Origin.Position.Z);
+                for (int i = 0; i < msg.Info.Height; i++)
+                {
+                    for (int j = 0; j < msg.Info.Width; j++)
+                    {
+                        temp.Map[j, i] = msg.Data[j + i * msg.Info.Width];
+                    }
+                }
 
                 receiveData.Enqueue(temp);
             });
@@ -59,15 +70,21 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
                     if (!publishFlag)
                         continue;
                     var temp_map = new sbyte[data.Map.Length];
-                    Buffer.BlockCopy(data.Map, 0, temp_map, 0, temp_map.Length);
+                    for (int i = 0, height = data.Map.GetLength(1); i < height; i++)
+                    {
+                        for (int j = 0, width = data.Map.GetLength(0); j < width; j++)
+                        {
+                            temp_map[j + i * width] = data.Map[j, i];
+                        }
+                    }
                     nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Data.CopyFrom(temp_map);
-                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Height = (uint)data.Map.GetLength(0);
-                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Width = (uint)data.Map.GetLength(1);
+                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Height = (uint)data.Map.GetLength(1);
+                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Width = (uint)data.Map.GetLength(0);
                     nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Resolution = data.Resolution;
                     nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Header.FrameId.CopyFrom("tlarc");
-                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.X = -14 - 7.5;
-                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.Y = -7.5;
-                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Orientation.W = -1;
+                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.X = -14;
+                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.Y = -8;
+                    nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Orientation.W = 1;
                     publisher.Publish(nativeMsg);
                     nativeMsg.Dispose();
                     nativeMsg = publisher.CreateBuffer();
