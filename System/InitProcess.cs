@@ -48,60 +48,66 @@ namespace TlarcKernel.Init
             uint randomKey = 0x11110000;
             foreach (var i in files)
             {
+#if DEBUG
+#else
                 try
                 {
-                    var yaml = File.ReadAllText(i);
+#endif
+                var yaml = File.ReadAllText(i);
 
-                    var processesProperties = deserializer.Deserialize<List<ProcessProperties>>(yaml);
-                    if (processesProperties == null)
-                        continue;
-                    foreach (var property in processesProperties)
-                    {
-                        Dictionary<Type, uint> LastInstance = [];
-                        Dictionary<uint, ComponentCell> components = new()
+                var processesProperties = deserializer.Deserialize<List<ProcessProperties>>(yaml);
+                if (processesProperties == null)
+                    continue;
+                foreach (var property in processesProperties)
+                {
+                    Dictionary<Type, uint> LastInstance = [];
+                    Dictionary<uint, ComponentCell> components = new()
                     {
                         { 0, new IOManager() }
                     };
-                        uint pid = property.Pid ?? randomKey++;
-                        foreach (var component in property.Components)
-                        {
-                            var declare = component.Key.Split("->");
-                            uint key = 0;
-                            if (declare.Length == 1)
-                                throw new Exception($"you must declare type in components declare,\n\t in \"{i}\" \n\tprocess:{property.Pid?.ToString("X")}:{component.Key}\"");
-                            else if (declare.Length == 2)
-                                key = randomKey++;
-                            else if (declare.Length == 3)
-                                key = uint.Parse(declare[2]);
-                            if (components.ContainsKey(key))
-                                throw new Exception("Multi ID");
-                            if (key == 0)
-                                throw new Exception("Could not use ID:0");
+                    uint pid = property.Pid ?? randomKey++;
+                    foreach (var component in property.Components)
+                    {
+                        var declare = component.Key.Split("->");
+                        uint key = 0;
+                        if (declare.Length == 1)
+                            throw new Exception($"you must declare type in components declare,\n\t in \"{i}\" \n\tprocess:{property.Pid?.ToString("X")}:{component.Key}\"");
+                        else if (declare.Length == 2)
+                            key = randomKey++;
+                        else if (declare.Length == 3)
+                            key = uint.Parse(declare[2]);
+                        if (components.ContainsKey(key))
+                            throw new Exception("Multi ID");
+                        if (key == 0)
+                            throw new Exception("Could not use ID:0");
 
-                            Type? t = Type.GetType(declare[0] + '.' + declare[1]);
-                            if (t == null || t.FullName == null)
-                                throw new Exception("type error");
-                            if (!t.IsSubclassOf(typeof(Component)))
-                                throw new Exception("type not a component");
+                        Type? t = Type.GetType(declare[0] + '.' + declare[1]);
+                        if (t == null || t.FullName == null)
+                            throw new Exception("type error");
+                        if (!t.IsSubclassOf(typeof(Component)))
+                            throw new Exception("type not a component");
 
-                            dynamic d = t.Assembly.CreateInstance(t.FullName, false, BindingFlags.Default, null, null, null, null)
-                             ?? throw new Exception("Could not create instance");
-                            (d as Component).InitComponents(key, component.Value.Relies ?? [], component.Value.Args ?? []);
-                            (d as Component).IOManager = components[0].Component as IOManager;
-                            (d as Component).ProcessID = pid;
+                        dynamic d = t.Assembly.CreateInstance(t.FullName, false, BindingFlags.Default, null, null, null, null)
+                         ?? throw new Exception("Could not create instance");
+                        (d as Component).InitComponents(key, component.Value.Relies ?? [], component.Value.Args ?? []);
+                        (d as Component).IOManager = components[0].Component as IOManager;
+                        (d as Component).ProcessID = pid;
 
-                            LastInstance[d.GetType()] = key;
-                            lastInstance[d.GetType()] = key;
-                            components.Add(key, d);
-                            componentCells.Add(key, d);
-                        }
-                        processes.Add(pid, new Process() { Pid = pid, Fps = property.Fps ?? 1000, Realtime = property.Realtime ?? false, Components = components, LastInstance = LastInstance });
+                        LastInstance[d.GetType()] = key;
+                        lastInstance[d.GetType()] = key;
+                        components.Add(key, d);
+                        componentCells.Add(key, d);
                     }
+                    processes.Add(pid, new Process() { Pid = pid, Fps = property.Fps ?? 1000, Realtime = property.Realtime ?? false, Components = components, LastInstance = LastInstance });
                 }
-                catch
+#if DEBUG
+#else
+            }
+                catch (Exception e)
                 {
-                    TlarcSystem.LogError("File not exist:" + i);
-                }
+                TlarcSystem.LogError(e.Message);
+            }
+#endif
             }
         }
 
