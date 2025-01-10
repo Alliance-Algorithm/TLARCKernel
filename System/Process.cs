@@ -30,13 +30,15 @@ class Process
 
         Awake();
 
-        System.Timers.Timer timer = new System.Timers.Timer
-        {
-            Enabled = true,
-            Interval = delay_time //执行间隔时间,单位为毫秒; 这里实际间隔为10分钟  
-        };
-        timer.Elapsed += new ElapsedEventHandler(LifeCycle);
-        timer.Start();
+         Task.Run(async () =>
+            {
+                using var timer = Ros2Def.context.CreateTimer(Ros2Def.node.Clock, TimeSpan.FromMilliseconds(value: delay_time));
+                while (true)
+                {
+                    await timer.WaitOneAsync(false);
+                    LifeCycle();
+                }
+            });
     }
     void Awake()
     {
@@ -47,8 +49,9 @@ class Process
         {
             foreach (var a in UpdateFuncs[i])
             {
-                if (!a.Image)
+                if (!a.Image){
                     tasks[a.Early].Add(Task.Run(a.Start));
+                    TlarcSystem.LogInfo(a.Component.GetType().FullName + ": Start()");}
             }
             TasksId = (uint)i;
 
@@ -56,7 +59,7 @@ class Process
         }
     }
 
-    void LifeCycle(object? source, ElapsedEventArgs e)
+    void LifeCycle()
     {
         if (_lockWasTaken)
         {

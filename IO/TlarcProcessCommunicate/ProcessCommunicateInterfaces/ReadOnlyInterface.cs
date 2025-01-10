@@ -35,7 +35,7 @@ namespace TlarcKernel.IO.ProcessCommunicateInterfaces
             throw new NotImplementedException();
         }
     }
-    class ReadOnlyUnmanagedInterfacePublisher<T>(string InterfaceName) : ReadOnlyInterfaceBase<T>(InterfaceName) where T : IDisposable, new()
+    class ReadOnlyUnmanagedInterfacePublisher<T>(string InterfaceName) : ReadOnlyInterfaceBase<T>(InterfaceName) where T : IDisposable
     {
         public override void LoadInstance(ref T instance)
         {
@@ -46,7 +46,7 @@ namespace TlarcKernel.IO.ProcessCommunicateInterfaces
         }
 
     }
-    class ReadOnlyUnmanagedSubscription<T>(string InterfaceName) : IReadOnlySubscription<T>, ISubscriptionFormPublisher where T : IDisposable, new()
+    class ReadOnlyUnmanagedSubscription<T>(string InterfaceName) : IReadOnlySubscription<T>, ISubscriptionFormPublisher where T : IDisposable
     {
         public SharedPtr<RentData<T>>? Rent => instance is null ? null : instance.Rent;
 
