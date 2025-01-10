@@ -21,6 +21,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Std
                 return;
             while (receiveData.Count > 1) receiveData.TryDequeue(out _);
             callback(receiveData.Last());
+            while (receiveData.Count > 0)  receiveData.TryDequeue(out _);
         }
         void Publish()
         {

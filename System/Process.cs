@@ -22,6 +22,7 @@ class Process
     readonly object _lock = new();
     bool _lockWasTaken = false;
     List<Task>[] tasks = [];
+    System.Timers.Timer tmr;
     public void Start()
     {
         double delay_time = 1000.0 / Fps;
@@ -29,16 +30,11 @@ class Process
         StageConstruct();
 
         Awake();
-
-         Task.Run(async () =>
-            {
-                using var timer = Ros2Def.context.CreateTimer(Ros2Def.node.Clock, TimeSpan.FromMilliseconds(value: delay_time));
-                while (true)
-                {
-                    await timer.WaitOneAsync(false);
-                    LifeCycle();
-                }
-            });
+        tmr = new System.Timers.Timer(delay_time);
+        tmr.Elapsed += new System.Timers.ElapsedEventHandler(LifeCycle);//到达时间的时候执行事件；
+        tmr.AutoReset = true;
+        tmr.Enabled = true;
+        tmr.Start();
     }
     void Awake()
     {
@@ -49,9 +45,11 @@ class Process
         {
             foreach (var a in UpdateFuncs[i])
             {
-                if (!a.Image){
+                if (!a.Image)
+                {
                     tasks[a.Early].Add(Task.Run(a.Start));
-                    TlarcSystem.LogInfo(a.Component.GetType().FullName + ": Start()");}
+                    TlarcSystem.LogInfo(a.Component.GetType().FullName + ": Start()");
+                }
             }
             TasksId = (uint)i;
 
@@ -59,7 +57,7 @@ class Process
         }
     }
 
-    void LifeCycle()
+    void LifeCycle(object? source, System.Timers.ElapsedEventArgs? e)
     {
         if (_lockWasTaken)
         {

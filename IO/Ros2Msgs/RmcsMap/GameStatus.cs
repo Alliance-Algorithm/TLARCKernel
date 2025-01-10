@@ -74,8 +74,9 @@ namespace TlarcKernel.IO.ROS2Msgs.RmcsMap
         {
             if (receiveData.Count == 0)
                 return;
-            while (receiveData.Count > 1) receiveData.TryDequeue(out _);
+            while (receiveData.Count >= 1) receiveData.TryDequeue(out _);
             callback(receiveData.Last());
+            receiveData.TryDequeue(out _);
         }
         void Publish()
         {

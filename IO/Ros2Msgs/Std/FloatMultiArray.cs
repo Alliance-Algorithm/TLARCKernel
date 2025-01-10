@@ -10,7 +10,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Std
 
         static protected bool publishFlag = false;
 
-        IRclPublisher<Rosidl.Messages.Std.Int32> publisher;
+        IRclPublisher<Rosidl.Messages.Std.Float32MultiArray> publisher;
         ConcurrentQueue<float[]> receiveData = new();
         Rcl.RosMessageBuffer nativeMsg;
         IOManager _ioManager = io;
@@ -21,6 +21,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Std
                 return;
             while (receiveData.Count > 1) receiveData.TryDequeue(out _);
             callback(receiveData.Last());
+            receiveData.TryDequeue(out _);
         }
         void Publish()
         {
@@ -42,7 +43,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Std
         }
         public void RegistryPublisher(string topicName)
         {
-            publisher = Ros2Def.node.CreatePublisher<Rosidl.Messages.Std.Int32>(topicName);
+            publisher = Ros2Def.node.CreatePublisher<Rosidl.Messages.Std.Float32MultiArray>(topicName);
             nativeMsg = publisher.CreateBuffer();
             // TlarcMsgs.Output += Publish;
 
