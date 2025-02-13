@@ -15,13 +15,15 @@ class Process
     public required Dictionary<uint, ComponentCell> Components { get; init; }
     public required Dictionary<Type, uint> LastInstance { get; init; }
 
-    DateTime dateTime = DateTime.Now;
-    List<List<ComponentCell>> UpdateFuncs = new();
-    uint PoolDim = 0;
-    uint TasksId = 0;
+    DateTime _dateTime = DateTime.Now;
+    List<List<ComponentCell>> _updateFuncs = new();
+    uint _poolDim = 0;
+    uint _tasksId = 0;
     readonly object _lock = new();
     bool _lockWasTaken = false;
-    List<Task>[] tasks = [];
+    List<Task>[] _tasks = [];
+    int[] _finalTaskCount;
+    CountdownEvent[] _countdownEvents;
     System.Timers.Timer tmr;
     public void Start()
     {
@@ -30,6 +32,7 @@ class Process
         StageConstruct();
 
         Awake();
+
         tmr = new System.Timers.Timer(delay_time);
         tmr.Elapsed += new System.Timers.ElapsedEventHandler(LifeCycle);//到达时间的时候执行事件；
         tmr.AutoReset = true;
@@ -38,23 +41,31 @@ class Process
     }
     void Awake()
     {
-        tasks = new List<Task>[PoolDim + 1];
-        for (int i = 0; i < PoolDim + 1; i++)
-            tasks[i] = [];
-        for (int i = 1; i < PoolDim; i++)
+        _tasks = new List<Task>[_poolDim + 1];
+        _finalTaskCount = new int[_poolDim + 1];
+        _countdownEvents = new CountdownEvent[_poolDim + 1];
+        for (int i = 0; i < _poolDim + 1; i++)
         {
-            foreach (var a in UpdateFuncs[i])
+            _tasks[i] = [];
+            _finalTaskCount[i] = 0;
+        }
+        for (int i = 1; i < _poolDim; i++)
+        {
+            foreach (var a in _updateFuncs[i])
             {
                 if (!a.Image)
                 {
-                    tasks[a.Early].Add(Task.Run(a.Start));
+                    _tasks[a.Dim].Add(Task.Run(a.Start));
+                    _finalTaskCount[a.Dim]++;
                     TlarcSystem.LogInfo(a.Component.GetType().FullName + ": Start()");
                 }
             }
-            TasksId = (uint)i;
+            _tasksId = (uint)i;
 
-            Task.WaitAll([.. tasks[i]]);
+            Task.WaitAll([.. _tasks[i]]);
         }
+        for (int i = 0; i < _poolDim + 1; i++)
+            _countdownEvents[i] = new CountdownEvent(_finalTaskCount[i]);
     }
 
     void LifeCycle(object? source, System.Timers.ElapsedEventArgs? e)
@@ -62,21 +73,23 @@ class Process
         if (_lockWasTaken)
         {
             string warning = "";
-            warning += $"did not fix in fps : {Fps} At Tasks : + {TasksId} In Process:0x{Pid}]\n";
+            warning += $"did not fix in fps : {Fps} At Tasks : + {_tasksId} In Process:0x{Pid}]\n";
             warning += $"\tIt could be in components:\n";
 
-            foreach (var a in UpdateFuncs[(int)TasksId])
-                warning += $"\t\t {a.Component.GetType()} with uid:0x{a.ID}\n";
+            foreach (var b in _updateFuncs)
+                foreach (var a in b)
+                    if (a.Dim == _tasksId)
+                        warning += $"\t\t {a.Component.GetType()} with uid:0x{a.ID}\n";
 
             TlarcSystem.LogWarning(warning);
-
+            return;
         }
         lock (_lock)
         {
             _lockWasTaken = true;
             if (Realtime) GC.TryStartNoGCRegion(20 * 1024 * 1024);
-            deltaTime = (DateTime.Now - dateTime).TotalSeconds;
-            dateTime = DateTime.Now;
+            deltaTime = (DateTime.Now - _dateTime).TotalSeconds;
+            _dateTime = DateTime.Now;
             InputUpdate();
             Update();
             OutputUpdate();
@@ -92,17 +105,32 @@ class Process
 
     void Update()
     {
-        for (int i = 0; i < PoolDim + 1; i++)
-            tasks[i] = [];
-        for (int i = 1; i < PoolDim; i++)
+        for (int i = 0; i < _poolDim + 1; i++)
+            _countdownEvents[i].Reset();
+        for (int i = 1; i < _poolDim; i++)
         {
-            foreach (var a in UpdateFuncs[i])
+            foreach (var a in _updateFuncs[i])
             {
-                tasks[a.Early].Add(Task.Run(a.Update));
+                ThreadPool.UnsafeQueueUserWorkItem(state =>
+                {
+                    try
+                    {
+                        a.Update();
+                    }
+                    catch (Exception ex)
+                    {
+                        TlarcSystem.LogError(ex.Message + $" at {a.GetType().Name} with id :{a.ID} :at {Pid}");
+                    }
+                    finally
+                    {
+                        _countdownEvents[a.Dim].Signal();
+                    }
+                }
+                , null);
             }
-            TasksId = (uint)i;
+            _tasksId = (uint)i;
 
-            Task.WaitAll([.. tasks[i]]);
+            _countdownEvents[i].Wait();
         }
     }
     void OutputUpdate()
@@ -152,24 +180,16 @@ class Process
 
         for (int k = 0; k < l.Length; k++)
         {
-            // try
+            foreach (var i in l[k].ReceiveID)
             {
-                foreach (var i in l[k].ReceiveID)
+                if (i.Value == 0)
                 {
-                    if (i.Value == 0)
-                    {
-                        Ros2Def.node.Logger.LogWarning("0 should not be inputID" + "@:" + l[k].ID.ToString());
-                        continue;
-                    }
-                    if (!Components[i.Value].Image)
-                        l[k].Forward.Add(Components[i.Value]);
+                    Ros2Def.node.Logger.LogWarning("0 should not be inputID" + "@:" + l[k].ID.ToString());
+                    continue;
                 }
+                if (!Components[i.Value].Image)
+                    l[k].Forward.Add(Components[i.Value]);
             }
-            // catch (Exception e)
-            // {
-            //     Ros2Def.node.Logger.LogFatal(e.Message + "\twhen:Set ID:" + l[k].ID + " Forward node At Program.cs");
-            //     Environment.Exit(-1);
-            // }
         }
         for (int k = 0; k < l.Length; k++)
         {
@@ -177,18 +197,19 @@ class Process
                 continue;
             Hashtable colored = [];
             FindPath(ref l[k], in colored);
-            PoolDim = Math.Max(l[k].Dim, PoolDim);
+            _poolDim = Math.Max(l[k].Dim, _poolDim);
         }
         foreach (var i in l)
             if (!i.Flag)
-                i.Dim = PoolDim;
-        PoolDim += 1;
-        for (int i = 0; i < PoolDim; i++)
-            UpdateFuncs.Add([]);
+                i.Dim = _poolDim;
+        _poolDim += 1;
+        for (int i = 0; i < _poolDim; i++)
+            _updateFuncs.Add([]);
         Components[0].Dim = 0;
+        Components[0].Early = 0;
         foreach (var i in l)
             if (!i.Image)
-                UpdateFuncs[(int)i.Dim].Add(i);
+                _updateFuncs[(int)i.Early].Add(i);
     }
 
     //=====================

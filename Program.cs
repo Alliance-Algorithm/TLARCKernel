@@ -19,6 +19,7 @@ namespace TlarcKernel
         static Dictionary<Type, uint> LastInstance = [];
         static void Main(string[] args)
         {
+            ThreadPool.SetMinThreads(10, 10);
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             Ros2Def.context = new RclContext(args);
             Ros2Def.node = Ros2Def.context.CreateNode("tlarc");

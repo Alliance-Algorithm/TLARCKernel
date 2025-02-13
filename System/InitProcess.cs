@@ -111,9 +111,5 @@ namespace TlarcKernel.Init
             }
         }
 
-        internal static void Init(ref object components)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

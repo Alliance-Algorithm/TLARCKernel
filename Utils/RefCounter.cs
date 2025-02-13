@@ -52,6 +52,7 @@ namespace TlarcKernel
     {
         private RefCounted<T> _refCountedObj;
         public ref readonly T Instance => ref _refCountedObj.Instance;
+        private bool disposed = false;
 
         public SharedPtr(RefCounted<T> refCountedObj)
         {
@@ -62,6 +63,14 @@ namespace TlarcKernel
         public void Dispose()
         {
             _refCountedObj.Release();
+            disposed = true;
+        }
+
+        ~SharedPtr()
+        {
+            if (disposed)
+                return;
+            Dispose();
         }
     }
 }
