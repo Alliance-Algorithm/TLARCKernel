@@ -1,10 +1,13 @@
 using System.Collections.Concurrent;
 using Rcl;
 
+
+
 namespace TlarcKernel.IO.ROS2Msgs.Nav
 {
     class OccupancyGrid(IOManager io)
     {
+
         (sbyte[,] Map, float Resolution, uint Height, uint Width) data;
         Action<(sbyte[,] Map, Vector3d Resolution, double angle, uint Height, uint Width)> callback;
         ConcurrentQueue<(sbyte[,] Map, Vector3d Resolution, double angle, uint Height, uint Width)> receiveData = new();
@@ -60,7 +63,6 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
         {
             publisher = Ros2Def.node.CreatePublisher<Rosidl.Messages.Nav.OccupancyGrid>(topicName);
             nativeMsg = publisher.CreateBuffer();
-
 
             Task.Run(async () =>
             {
