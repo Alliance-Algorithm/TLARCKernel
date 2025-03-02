@@ -29,6 +29,7 @@ namespace TlarcKernel
 
     public class Component : IComponent
     {
+        protected double DeltaTimeInSecond => Program.GetProcessWithPID(ProcessID).deltaTime;
         uint _uuid;
         Dictionary<string, uint> _revUid = [];
         Dictionary<string, object> _args = [];
