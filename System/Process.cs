@@ -119,7 +119,8 @@ class Process
                     }
                     catch (Exception ex)
                     {
-                        TlarcSystem.LogError(ex.Message + $" at {a.GetType().Name} with id :{a.ID} :at {Pid}");
+                        TlarcSystem.LogError(ex.Message + $" at {a.GetType().Name} with id :0x{a.ID} :{a.Component.GetType().FullName} :at {Pid}");
+                        TlarcSystem.LogError(ex.StackTrace);
                     }
                     finally
                     {
