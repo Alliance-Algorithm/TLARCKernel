@@ -24,10 +24,27 @@ namespace TlarcKernel
             Ros2Def.context = new RclContext(args);
             Ros2Def.node = Ros2Def.context.CreateNode("tlarc");
 #if DEBUG
+            Console.WriteLine(@"
+  ________    ___    ____  ______
+ /_  __/ /   /   |  / __ \/ ____/
+  / / / /   / /| | / /_/ / /     
+ / / / /___/ ___ |/ _, _/ /___   
+/_/ /_____/_/  |_/_/ |_|\____/   
+================================ @Alray");
             Console.WriteLine("[Enter] to use debug.yaml, or input your config files name, split with [Space]:");
+            Console.WriteLine("Usage: [Option] filename1.yaml [filenames2.yaml ...]");
+            Console.WriteLine("\t Option: --debug (default) : log info,warning,errors in 1k hz");
+            Console.WriteLine("\t Option: --profile : log times in each process or user log in 1 hz");
             args = Console.ReadLine().Split(' ', StringSplitOptions.RemoveEmptyEntries);
 #endif
-            ProcessInit.Init(args, ref Processes, ref Components, ref LastInstance);
+            bool profile = false;
+            if (args[0] == "--profile")
+            {
+                profile = true;
+                ProcessInit.Init(args[1..], ref Processes, ref Components, ref LastInstance);
+            }
+            else
+                ProcessInit.Init(args, ref Processes, ref Components, ref LastInstance);
 
             StageConstruct();
 
@@ -41,9 +58,40 @@ namespace TlarcKernel
 
             while (true)
             {
-                if (TlarcSystem.TryGetPrint(out var a))
-                    a();
-                Thread.Sleep(1);
+#if DEBUG
+                if (!profile)
+                {
+#endif
+                    if (TlarcSystem.TryGetPrint(out var a))
+                        a();
+                    Thread.Sleep(1);
+#if DEBUG
+                }
+                else
+                {
+                    string times = "";
+                    foreach (var process in Processes.Values)
+                    {
+                        times += $"\n======================\n Process@ {process.Pid}\n";
+                        foreach (var (name, time) in process.Times)
+                        {
+                            times += $"\t\"{name}\":".PadRight(100, ' ') + $"{time}\n";
+                        }
+                    }
+                    foreach (var (name, timers) in TlarcSystem.TryGetTimer())
+                    {
+                        times += $"\n======================\n Component@ {name}\n";
+                        foreach (var (desc, time) in timers)
+                        {
+                            times += $"\t\"{desc}\":".PadRight(100, ' ') + $"{time}\n";
+                        }
+                    }
+                    Console.Clear();
+                    Console.WriteLine(times);
+                    Thread.Sleep(1000);
+                }
+
+#endif
             }
         }
         static void Awake()

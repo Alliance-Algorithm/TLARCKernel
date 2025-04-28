@@ -26,9 +26,46 @@ namespace TlarcKernel
         /// </summary>
         public virtual void Echo() { }
     }
-
     public class Component : IComponent
     {
+#if DEBUG
+        private System.Diagnostics.Stopwatch _stopwatch = new();
+        protected void BenchMarkBegin()
+        {
+            _stopwatch.Reset();
+            _stopwatch.Start();
+
+        }
+        protected long BenchMarkStep()
+        {
+            var time = _stopwatch.ElapsedMilliseconds;
+            _stopwatch.Reset();
+            _stopwatch.Start();
+            return time;
+        }
+        protected void BenchMarkEnd()
+        {
+            _stopwatch.Reset();
+        }
+        protected static void BenchMarkFilled(string desc, float time, ref Dictionary<string, float> data)
+        {
+            if (data.TryGetValue(desc, out var dataValue))
+                data[desc] = dataValue * 0.15f + time * 0.85f;
+            else data[desc] = time;
+        }
+#else
+        protected void BenchMarkBegin()
+        {
+        }
+        protected long BenchMarkStep()
+        {
+            return 0;
+        }
+        protected void BenchMarkFilled(  string desc, float time,ref Dictionary<string, float> data)
+        {
+            return;
+        }
+#endif
         protected double DeltaTimeInSecond => Program.GetProcessWithPID(ProcessID).deltaTime;
         uint _uuid;
         Dictionary<string, uint> _revUid = [];

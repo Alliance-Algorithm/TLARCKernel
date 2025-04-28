@@ -25,6 +25,9 @@ class Process
     int[] _finalTaskCount;
     CountdownEvent[] _countdownEvents;
     System.Timers.Timer tmr;
+#if DEBUG
+    public Dictionary<string, float> Times { get; private set; } = [];
+#endif
     public void Start()
     {
         double delay_time = 1000.0 / Fps;
@@ -72,6 +75,8 @@ class Process
     {
         if (_lockWasTaken)
         {
+#if DEBUG
+#else
             string warning = "";
             warning += $"did not fix in fps : {Fps} At Tasks : + {_tasksId} In Process:0x{Pid}]\n";
             warning += $"\tIt could be in components:\n";
@@ -82,6 +87,7 @@ class Process
                         warning += $"\t\t {a.Component.GetType()} with uid:0x{a.ID}\n";
 
             TlarcSystem.LogWarning(warning);
+#endif
             return;
         }
         lock (_lock)
@@ -115,7 +121,18 @@ class Process
                 {
                     try
                     {
+#if DEBUG
+                        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+                        stopwatch.Start();
+#endif
                         a.Update();
+#if DEBUG
+                        string name = a.Component.GetType().ToString();
+                        stopwatch.Stop();
+                        if (Times.TryGetValue(name, out float value))
+                            Times[name] = value * 0.15f + stopwatch.ElapsedMilliseconds * 0.85f;
+                        else Times[name] = stopwatch.ElapsedMilliseconds;
+#endif
                     }
                     catch (Exception ex)
                     {

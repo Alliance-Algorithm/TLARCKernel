@@ -21,6 +21,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Geometry
                 return;
             while (receiveData.Count > 1) receiveData.TryDequeue(out _);
             callback(receiveData.First());
+            receiveData.TryDequeue(out _);
         }
         void Publish()
         {

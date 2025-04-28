@@ -1,6 +1,7 @@
 
 #define humble
 using System.Collections.Concurrent;
+using System.Reflection.Metadata.Ecma335;
 using Rcl;
 using Rcl.Logging;
 using Rosidl.Messages.Builtin;
@@ -26,10 +27,13 @@ namespace TlarcKernel
                 internal static string RootPath = Environment.ProcessPath.Substring(0,Environment.ProcessPath.LastIndexOf('/')) + "/../../share/tlarc/";
 #endif
                 static ConcurrentQueue<Action> Prints = new();
+                static Dictionary<string, Dictionary<string, float>> timers = new();
                 public static bool TryGetPrint(out Action action) => Prints.TryDequeue(out action);
+                public static Dictionary<string, Dictionary<string, float>> TryGetTimer() => timers;
+                static public void SetLogTimers(string name, Dictionary<string, float> ts) => timers[name] = ts;
                 static public void LogError(string Message)
                 {
-                        #if DEBUG
+#if DEBUG
                         Task.Run(() =>
                         Prints.Enqueue(() =>
                         {
@@ -37,13 +41,13 @@ namespace TlarcKernel
                                 Console.WriteLine($"[Error:{DateTime.UtcNow.Ticks}]:" + Message);
                                 Console.ResetColor();
                         }));
-                        #else
+#else
                                 Ros2Def.node.Logger.LogFatal($"[Info:{DateTime.UtcNow.Ticks}]:" + Message);
-                        #endif
+#endif
                 }
                 static public void LogWarning(string Message)
                 {
-                        #if DEBUG
+#if DEBUG
                         Task.Run(() =>
                         Prints.Enqueue(() =>
                         {
@@ -51,14 +55,14 @@ namespace TlarcKernel
                                 Console.WriteLine($"[Warning:{DateTime.UtcNow.Ticks}]:" + Message);
                                 Console.ResetColor();
                         }));
-                        #else
+#else
                          Ros2Def.node.Logger.LogWarning($"[Info:{DateTime.UtcNow.Ticks}]:" + Message);
-                        #endif
+#endif
                 }
                 static public void LogInfo(string Message)
                 {
-                        #if DEBUG
-                        
+#if DEBUG
+
                         Task.Run(() =>
                         Prints.Enqueue(() =>
                         {
@@ -67,9 +71,9 @@ namespace TlarcKernel
                                 Console.ResetColor();
                         }));
 
-                        #else
+#else
                          Ros2Def.node.Logger.LogInformation($"[Info:{DateTime.UtcNow.Ticks}]:" + Message);
-                        #endif
+#endif
                 }
                 static public void Log(string Message, ConsoleColor color)
                 {

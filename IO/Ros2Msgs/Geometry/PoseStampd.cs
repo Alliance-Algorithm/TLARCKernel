@@ -17,10 +17,11 @@ namespace TlarcKernel.IO.ROS2Msgs.Geometry
 
         void Subscript()
         {
-            if (receiveData == null || receiveData.Count == 0)
+            if (receiveData == null || receiveData.IsEmpty)
                 return;
             while (receiveData.Count > 1) receiveData.TryDequeue(out _);
             callback(receiveData.First());
+            receiveData.TryDequeue(out _);
         }
         void Publish()
         {
