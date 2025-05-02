@@ -1,26 +1,31 @@
 namespace TlarcKernel.IO.ProcessCommunicateInterfaces
 {
-    public class RentData<T>(T value, bool disposable = false) : IDisposable where T : notnull
-    {
-        readonly public bool Disposable = disposable;
-        T _value = value;
+  public class RentData<T>(T value, bool disposable = false) : IDisposable
+    where T : notnull
+  {
+    public readonly bool Disposable = disposable;
+    T _value = value;
 
-        public ref readonly T Value => ref _value;
+    public ref readonly T Value => ref _value;
 
-        void IDisposable.Dispose()
-        {
-            if (Disposable)
-                ((IDisposable)_value).Dispose();
-        }
-    }
-    public interface ICommunicateInterface
+    void IDisposable.Dispose()
     {
-        public string InterfaceName { get; }
+      if (Disposable)
+        ((IDisposable)_value).Dispose();
     }
-    public interface ISubscription : ICommunicateInterface;
-    public interface IPublisher : ISubscription;
-    public interface ISubscriptionFormPublisher : ISubscription
-    {
-        protected IPublisher Instance { get; set; }
-    };
+  }
+
+  public interface ICommunicateInterface
+  {
+    public string InterfaceName { get; }
+  }
+
+  public interface ISubscription : ICommunicateInterface;
+
+  public interface IPublisher : ISubscription;
+
+  public interface ISubscriptionFormPublisher : ISubscription
+  {
+    protected IPublisher Instance { get; set; }
+  };
 }

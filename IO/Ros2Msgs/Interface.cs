@@ -1,12 +1,11 @@
 namespace TlarcKernel.IO.ROS2Msgs
 {
+  class TlarcRosMsgs
+  {
+    internal event Action Input;
 
-    class TlarcRosMsgs
-    {
-        internal event Action Input;
-        // static internal event Action Output;
+    // static internal event Action Output;
 
-        public void InputData() =>
-           Input?.Invoke();
-    }
+    public void InputData() => Input?.Invoke();
+  }
 }
