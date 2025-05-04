@@ -5,7 +5,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
 {
   class OccupancyGrid(IOManager io)
   {
-    (sbyte[,] Map, float Resolution, uint Height, uint Width) data;
+    (sbyte[] Map, float Resolution, uint Height, uint Width) data;
     Action<(sbyte[,] Map, Vector3d Resolution, double angle, uint Height, uint Width)> callback;
     ConcurrentQueue<(
       sbyte[,] Map,
@@ -83,45 +83,52 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
 
       Task.Run(async () =>
       {
-        using var timer = Ros2Def.context.CreateTimer(
-          Ros2Def.node.Clock,
-          TimeSpan.FromMilliseconds(value: 1)
-        );
-        while (true)
+        try
         {
-          await timer.WaitOneAsync(false);
-          if (!publishFlag)
-            continue;
-          var temp_map = new sbyte[data.Map.Length];
-          for (int i = 0, height = data.Map.GetLength(1); i < height; i++)
+          using var timer = Ros2Def.context.CreateTimer(
+            Ros2Def.node.Clock,
+            TimeSpan.FromMilliseconds(value: 1)
+          );
+          while (true)
           {
-            for (int j = 0, width = data.Map.GetLength(0); j < width; j++)
+            await timer.WaitOneAsync(false);
+            if (!publishFlag)
+              continue;
+            var temp_map = new sbyte[data.Height * data.Width];
+            for (int j = 0, width = (int)data.Height; j < width; j++)
             {
-              temp_map[j + i * width] = data.Map[j, i];
+              for (int i = 0, height = (int)data.Width; i < height; i++)
+              {
+                temp_map[j + i * width] = data.Map[i + j * height];
+              }
             }
+            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Data.CopyFrom(temp_map);
+            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Height =
+              data.Width;
+            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Width =
+              data.Height;
+            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Resolution =
+              data.Resolution;
+            nativeMsg
+              .AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>()
+              .Header.FrameId.CopyFrom("tlarc");
+            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.X = -15;
+            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.Y = -10;
+            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Orientation.W = 1;
+            publisher.Publish(nativeMsg);
+            nativeMsg.Dispose();
+            nativeMsg = publisher.CreateBuffer();
+            publishFlag = false;
           }
-          nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Data.CopyFrom(temp_map);
-          nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Height = (uint)
-            data.Map.GetLength(1);
-          nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Width = (uint)
-            data.Map.GetLength(0);
-          nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Resolution =
-            data.Resolution;
-          nativeMsg
-            .AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>()
-            .Header.FrameId.CopyFrom("tlarc");
-          nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.X = -14;
-          nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.Y = -8;
-          nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Orientation.W = 1;
-          publisher.Publish(nativeMsg);
-          nativeMsg.Dispose();
-          nativeMsg = publisher.CreateBuffer();
-          publishFlag = false;
+        }
+        catch (Exception e)
+        {
+          TlarcSystem.LogError(e.Message + '\n' + e.StackTrace);
         }
       });
     }
 
-    public void Publish((sbyte[,] Map, float Resolution, uint Height, uint Width) data)
+    public void Publish((sbyte[] Map, float Resolution, uint Height, uint Width) data)
     {
       this.data = data;
       Publish();

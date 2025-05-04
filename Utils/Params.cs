@@ -21,6 +21,7 @@ namespace TlarcKernel
 #if DEBUG
     internal static string ConfigurationPath = "./configuration/";
     internal static string RootPath = "./";
+    internal static string MapPath = "./maps/";
 #else
     internal static string ConfigurationPath =
       Environment.ProcessPath.Substring(0, Environment.ProcessPath.LastIndexOf('/'))
@@ -28,6 +29,9 @@ namespace TlarcKernel
     internal static string RootPath =
       Environment.ProcessPath.Substring(0, Environment.ProcessPath.LastIndexOf('/'))
       + "/../../share/tlarc/";
+    internal static string MapPath =
+      Environment.ProcessPath.Substring(0, Environment.ProcessPath.LastIndexOf('/'))
+      + "/../../share/tlarc/maps/";
 #endif
     static ConcurrentQueue<Action> Prints = new();
     static Dictionary<string, Dictionary<string, float>> timers = new();

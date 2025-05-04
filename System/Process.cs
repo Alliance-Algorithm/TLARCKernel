@@ -77,19 +77,17 @@ class Process
   {
     if (_lockWasTaken)
     {
-#if DEBUG
-#else
       string warning = "";
       warning += $"did not fix in fps : {Fps} At Tasks : + {_tasksId} In Process:0x{Pid}]\n";
       warning += $"\tIt could be in components:\n";
 
       foreach (var b in _updateFuncs)
-      foreach (var a in b)
-        if (a.Dim == _tasksId)
-          warning += $"\t\t {a.Component.GetType()} with uid:0x{a.ID}\n";
+        foreach (var a in b)
+          if (a.Dim == _tasksId)
+            warning += $"\t\t {a.Component.GetType()} with uid:0x{a.ID}\n";
 
       TlarcSystem.LogWarning(warning);
-#endif
+
       return;
     }
     lock (_lock)
