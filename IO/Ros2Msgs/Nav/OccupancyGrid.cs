@@ -112,11 +112,10 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
             nativeMsg
               .AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>()
               .Header.FrameId.CopyFrom("tlarc");
-            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.X = -15;
-            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.Y = -10;
+            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.X = -data.Height * data.Resolution / 2;
+            nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Position.Y = -data.Width * data.Resolution / 2;
             nativeMsg.AsRef<Rosidl.Messages.Nav.OccupancyGrid.Priv>().Info.Origin.Orientation.W = 1;
             publisher.Publish(nativeMsg);
-            nativeMsg.Dispose();
             nativeMsg = publisher.CreateBuffer();
             publishFlag = false;
           }

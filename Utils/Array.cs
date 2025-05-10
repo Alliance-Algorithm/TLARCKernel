@@ -8,13 +8,13 @@ class TlarcArray<T> : IDisposable where T : unmanaged
 {
 
     unsafe T* _data;
-    T _init;
+    T? _init;
     nint pointer;
     readonly int[] DimensionHelper;
     readonly int[] Dimension;
     readonly int dimensionLength;
     readonly int totalLength;
-    public TlarcArray(T init, params int[] dimension)
+    public TlarcArray(T? init = null, params int[] dimension)
     {
         _init = init;
         Dimension = dimension.Copy();
@@ -31,8 +31,9 @@ class TlarcArray<T> : IDisposable where T : unmanaged
         {
             pointer = Marshal.AllocHGlobal(sizeof(T) * totalLength);
             _data = (T*)pointer.ToPointer();
-            for (int i = 0; i < totalLength; i++)
-                _data[i] = init;
+            if (init is not null)
+                for (int i = 0; i < totalLength; i++)
+                    _data[i] = (T)init;
         }
 
     }
