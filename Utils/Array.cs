@@ -130,12 +130,12 @@ class TlarcArray<T> : IDisposable where T : unmanaged
 
     public void Dispose()
     {
-        Dispose(false);
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 
     ~TlarcArray()
     {
-        Dispose(true);
+        Dispose(false);
     }
 }
