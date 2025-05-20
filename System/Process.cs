@@ -86,7 +86,7 @@ class Process
           if (a.Dim == _tasksId)
             warning += $"\t\t {a.Component.GetType()} with uid:0x{a.ID}\n";
 
-      TlarcSystem.LogWarning(warning);
+      // TlarcSystem.LogWarning(warning);
 
       return;
     }
