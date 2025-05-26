@@ -70,6 +70,8 @@ namespace TlarcKernel.IO.ROS2Msgs.Geometry
             continue;
           nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Pose.Position.X = data.pos.X;
           nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Pose.Position.Y = data.pos.Y;
+
+          nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Header.FrameId.CopyFrom("tlarc");
           publisher.Publish(nativeMsg);
           publishFlag = false;
         }

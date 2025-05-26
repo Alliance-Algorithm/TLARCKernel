@@ -145,6 +145,7 @@ class Process
                   + $" at {a.GetType().Name} with id :0x{a.ID} :{a.Component.GetType().FullName} :at {Pid}"
               );
               TlarcSystem.LogError(ex.StackTrace);
+              throw;
             }
             finally
             {

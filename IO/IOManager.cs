@@ -46,17 +46,25 @@ namespace TlarcKernel.IO
     public async void CommonReceiveTask<T>(string name, MessageHandler<T> handler)
       where T : IMessage
     {
-      using var subscription = Ros2Def.node.CreateSubscription<T>(name);
-      bool l = false;
-      await foreach (var i in subscription.ReadAllAsync())
+      try
       {
-        if (l)
-          continue;
-        l = true;
-        handler(i);
-        l = false;
+        using var subscription = Ros2Def.node.CreateSubscription<T>(name);
+        bool l = false;
+        await foreach (var i in subscription.ReadAllAsync())
+        {
+          if (l)
+            continue;
+          l = true;
+          handler(i);
+          l = false;
+        }
+        TlarcSystem.LogInfo(name + ":Registry");
       }
-      Console.WriteLine(name + ":Registry");
+      catch (Exception e)
+      {
+        TlarcSystem.LogError($"T == {typeof(T).FullName}");
+        throw;
+      }
     }
 
     public async void NativeReceiveTask<T>(string name, BufferHandler handler)

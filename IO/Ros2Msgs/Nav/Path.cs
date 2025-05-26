@@ -37,7 +37,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
     {
       this.callback = callback;
       _ioManager.TlarcRosMsgs.Input += Subscript;
-      _ioManager.RegistrySubscription<Rosidl.Messages.Nav.Path>(
+      _ioManager.RegistrySubscription(
         topicName,
         (Rosidl.Messages.Nav.Path msg) =>
         {
@@ -51,6 +51,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
               (float)k[i].Pose.Position.Z
             );
           }
+          receiveData.Enqueue(data);
         }
       );
     }
