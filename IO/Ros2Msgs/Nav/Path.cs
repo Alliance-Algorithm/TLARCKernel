@@ -20,7 +20,7 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
     {
       if (receiveData.Count == 0)
         return;
-      while (receiveData.Count >= 1)
+      while (receiveData.Count > 1)
         receiveData.TryDequeue(out _);
       callback(receiveData.Last());
       receiveData.TryDequeue(out _);
@@ -42,16 +42,16 @@ namespace TlarcKernel.IO.ROS2Msgs.Nav
         (Rosidl.Messages.Nav.Path msg) =>
         {
           var k = msg.Poses;
-          var data = new System.Numerics.Vector3[k.Length];
+          var tmp = new System.Numerics.Vector3[k.Length];
           for (int i = 0; i < k.Length; i++)
           {
-            data[i] = new System.Numerics.Vector3(
+            tmp[i] = new System.Numerics.Vector3(
               (float)k[i].Pose.Position.X,
               (float)k[i].Pose.Position.Y,
               (float)k[i].Pose.Position.Z
             );
           }
-          receiveData.Enqueue(data);
+          receiveData.Enqueue(tmp);
         }
       );
     }
