@@ -30,7 +30,7 @@ namespace TlarcKernel
 
   public class Component : IComponent
   {
-#if DEBUG
+#if TLARC_DEBUG
     private System.Diagnostics.Stopwatch _stopwatch = new();
 
     protected void BenchMarkBegin()

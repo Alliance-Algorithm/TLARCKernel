@@ -71,6 +71,12 @@ namespace TlarcKernel.IO.ROS2Msgs.Geometry
           nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Pose.Position.X = data.pos.X;
           nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Pose.Position.Y = data.pos.Y;
 
+          var orientation = Quaterniond.AxisAngleR(Vector3d.AxisZ, data.Theta);
+          nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Pose.Orientation.X = orientation.x;
+          nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Pose.Orientation.Y = orientation.y;
+          nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Pose.Orientation.Z = orientation.z;
+          nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Pose.Orientation.W = orientation.w;
+
           nativeMsg.AsRef<Rosidl.Messages.Geometry.PoseStamped.Priv>().Header.FrameId.CopyFrom("tlarc");
           publisher.Publish(nativeMsg);
           publishFlag = false;
