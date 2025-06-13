@@ -93,62 +93,6 @@ namespace TlarcKernel
     public Dictionary<string, object> Args => _args;
     public IOManager IOManager { get; set; }
 
-#if DEBUG
-    static object? CreateInterfaceInstance(Type interfaceType)
-    {
-      if (interfaceType.IsInterface)
-      {
-        var dynamicAssemblyName = new AssemblyName("DynamicAssembly");
-        var dynamicAssembly = AssemblyBuilder.DefineDynamicAssembly(
-          dynamicAssemblyName,
-          AssemblyBuilderAccess.Run
-        );
-        dynamicAssembly.GetReferencedAssemblies().Append(interfaceType.Assembly.GetName());
-        var dynamicModule = dynamicAssembly.DefineDynamicModule("DynamicModule");
-
-        var typeBuilder = dynamicModule.DefineType(interfaceType.Name + "Impl");
-        typeBuilder.AddInterfaceImplementation(interfaceType);
-
-        // Implement the method
-        foreach (var method in interfaceType.GetMethods())
-        {
-          var methodBuilder = typeBuilder.DefineMethod(
-            method.Name,
-            MethodAttributes.Public | MethodAttributes.Virtual,
-            method.ReturnType,
-            method.GetParameters().Select(p => p.ParameterType).ToArray()
-          );
-
-          var il = methodBuilder.GetILGenerator();
-          if (method.ReturnType != typeof(void))
-          {
-            if (method.ReturnType.IsValueType)
-            {
-              il.Emit(OpCodes.Ldc_I4_0);
-            }
-            else
-            {
-              il.Emit(OpCodes.Ldnull);
-            }
-          }
-          il.Emit(OpCodes.Ret);
-        }
-
-        var dynamicType = typeBuilder.CreateTypeInfo().AsType();
-
-        // Use expression trees to create an instance
-        var newExp = Expression.New(dynamicType);
-        var lambda = Expression.Lambda<Func<object>>(newExp);
-        var compiledLambda = lambda.Compile();
-
-        return compiledLambda();
-      }
-      else
-      {
-        return null;
-      }
-    }
-#endif
 
     public void AutoSetReceiveID()
     {
@@ -242,19 +186,10 @@ namespace TlarcKernel
             }
             catch (System.Exception)
             {
-#if DEBUG
-              TlarcSystem.LogError(
-                $"{GetType().FullName} Cannot Find Component: \n\tno any component of type: {p.FieldType.FullName}\nin process:0x{ProcessID:X}"
-              );
-              p.SetValue(
-                this,
-                CreateInterfaceInstance(p.FieldType) ?? Activator.CreateInstance(p.FieldType)
-              );
-#else
+
               throw new Exception(
                 $"{GetType().FullName} Cannot Find Component: \n\tno any component of type: {p.FieldType.FullName}\nin process:0x{ProcessID:X}"
               );
-#endif
             }
           }
         }

@@ -44,52 +44,52 @@ namespace TlarcKernel
 
     public static void LogError(string Message)
     {
-#if DEBUG
       Task.Run(() =>
         Prints.Enqueue(() =>
         {
+#if DEBUG
           Console.ForegroundColor = ConsoleColor.Red;
           Console.WriteLine($"[Error:{DateTime.UtcNow.Ticks}]:" + Message);
           Console.ResetColor();
+#else
+          Ros2Def.node.Logger.LogFatal($"[Info:{DateTime.UtcNow.Ticks}]:" + Message);
+#endif
         })
       );
-#else
-      Ros2Def.node.Logger.LogFatal($"[Info:{DateTime.UtcNow.Ticks}]:" + Message);
-#endif
     }
 
     public static void LogWarning(string Message)
     {
-#if DEBUG
       Task.Run(() =>
         Prints.Enqueue(() =>
         {
+#if DEBUG
           Console.ForegroundColor = ConsoleColor.Yellow;
           Console.WriteLine($"[Warning:{DateTime.UtcNow.Ticks}]:" + Message);
           Console.ResetColor();
-        })
-      );
 #else
       Ros2Def.node.Logger.LogWarning($"[Info:{DateTime.UtcNow.Ticks}]:" + Message);
 #endif
+        })
+      );
     }
 
     public static void LogInfo(string Message)
     {
-#if DEBUG
 
       Task.Run(() =>
         Prints.Enqueue(() =>
         {
+#if DEBUG
           Console.ForegroundColor = ConsoleColor.White;
           Console.WriteLine($"[Info:{DateTime.UtcNow.Ticks}]:" + Message);
           Console.ResetColor();
-        })
-      );
-
 #else
       Ros2Def.node.Logger.LogInformation($"[Info:{DateTime.UtcNow.Ticks}]:" + Message);
 #endif
+        })
+      );
+
     }
 
     public static void Log(string Message, ConsoleColor color)

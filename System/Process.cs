@@ -125,7 +125,7 @@ class Process
             try
             {
 #if DEBUG
-              System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+              System.Diagnostics.Stopwatch stopwatch = new();
               stopwatch.Start();
 #endif
               a.Update();
